@@ -185,6 +185,205 @@ class GeometricAlgebraLayer(AlgebraicLayer):
         return np.column_stack(results)
 
 
+class PostModernLayer(AlgebraicLayer):
+    """
+    Post-modern neural network layer that challenges traditional assumptions
+    about neural computation through self-referential and meta-computational operations.
+    
+    Incorporates concepts from post-modern philosophy:
+    - Deconstruction of traditional input/output boundaries
+    - Self-referential transformations that modify themselves
+    - Embrace of paradox and plurality in computation
+    - Meta-operations that operate on operations themselves
+    """
+    
+    def __init__(self, input_size: int, output_size: int, chaos_factor: float = 0.1, meta_levels: int = 2):
+        super().__init__(input_size, output_size, "postmodern")
+        self.chaos_factor = chaos_factor
+        self.meta_levels = meta_levels
+        
+        # Self-modifying coefficients that change based on input history
+        self.adaptation_memory = np.zeros((input_size, output_size))
+        self.transformation_history = []
+        
+        # Initialize fractal coefficients using strange attractors
+        self.fractal_coefficients = self._generate_fractal_coefficients()
+        
+        # Meta-transformation matrices for different levels of abstraction
+        self.meta_transformations = self._generate_meta_transformations()
+        
+    def _generate_fractal_coefficients(self) -> np.ndarray:
+        """Generate coefficients based on chaotic/fractal patterns."""
+        # Use logistic map (chaotic dynamics) to generate coefficients
+        coeffs = np.zeros((self.input_size, self.output_size))
+        
+        # Logistic map: x_{n+1} = r * x_n * (1 - x_n) with r = 3.7 (chaotic regime)
+        r = 3.7
+        x = 0.5  # Initial condition
+        
+        for i in range(self.input_size):
+            for j in range(self.output_size):
+                # Generate next value in chaotic sequence
+                x = r * x * (1 - x)
+                # Scale to reasonable range and add some structure
+                coeffs[i, j] = (x - 0.5) * 2 * (1 + np.sin(i * j * 0.1))
+                
+        return coeffs
+    
+    def _generate_meta_transformations(self) -> List[np.ndarray]:
+        """Generate meta-transformation matrices for different levels of abstraction."""
+        transformations = []
+        
+        for level in range(self.meta_levels):
+            # Each meta-level operates on increasingly abstract representations
+            size = max(2, self.output_size // (level + 1))
+            
+            # Create transformation inspired by non-commutative geometry
+            transform = np.zeros((size, size))
+            for i in range(size):
+                for j in range(size):
+                    # Non-commutative structure: [A, B] ≠ 0
+                    if i != j:
+                        transform[i, j] = np.sin(i * j * np.pi / size) / (1 + abs(i - j))
+                    else:
+                        transform[i, j] = 1 + 0.1 * np.cos(i * np.pi / size)
+                        
+            transformations.append(transform)
+            
+        return transformations
+    
+    def _self_modify(self, x: np.ndarray) -> None:
+        """Self-referential modification of the layer's own parameters."""
+        # Update adaptation memory based on input patterns
+        if x.ndim == 1:
+            x = x.reshape(1, -1)
+            
+        # Compute adaptation based on input entropy and variance
+        input_entropy = -np.sum(x * np.log(np.abs(x) + 1e-8), axis=1).mean()
+        input_variance = np.var(x)
+        
+        # Self-modification factor
+        mod_factor = self.chaos_factor * np.tanh(input_entropy) * np.exp(-input_variance)
+        
+        # Update fractal coefficients based on history
+        if len(self.transformation_history) > 0:
+            recent_output = self.transformation_history[-1]
+            feedback = np.outer(recent_output.mean(axis=0), x.mean(axis=0))
+            
+            # Reshape feedback to match fractal_coefficients if necessary
+            if feedback.shape != self.fractal_coefficients.shape:
+                feedback = np.resize(feedback, self.fractal_coefficients.shape)
+                
+            self.fractal_coefficients += mod_factor * feedback
+            
+        # Limit growth to prevent instability
+        self.fractal_coefficients = np.clip(self.fractal_coefficients, -5, 5)
+    
+    def _apply_meta_transformations(self, x: np.ndarray) -> np.ndarray:
+        """Apply meta-level transformations that operate on abstractions of the input."""
+        meta_results = []
+        current_input = x
+        
+        for level, transform in enumerate(self.meta_transformations):
+            # Compress input to match transformation size
+            if current_input.shape[1] > transform.shape[0]:
+                # Use PCA-like compression
+                compressed = current_input[:, :transform.shape[0]]
+            else:
+                # Pad with fractal noise if needed
+                padding_size = transform.shape[0] - current_input.shape[1]
+                if padding_size > 0:
+                    noise = np.random.normal(0, 0.1, (current_input.shape[0], padding_size))
+                    compressed = np.hstack([current_input, noise])
+                else:
+                    compressed = current_input
+            
+            # Apply meta-transformation
+            meta_output = compressed @ transform
+            meta_results.append(meta_output)
+            
+            # Use output as input for next level (recursive abstraction)
+            current_input = meta_output
+            
+        return meta_results
+    
+    def _deconstruct_boundaries(self, x: np.ndarray) -> np.ndarray:
+        """Deconstruct traditional input/output boundaries through recursive operations."""
+        if x.ndim == 1:
+            x = x.reshape(1, -1)
+            
+        # Create recursive feedback loops
+        recursive_output = x.copy()
+        
+        for iteration in range(3):  # Limited iterations to prevent infinite loops
+            # Mix input with previous iteration's output
+            if iteration > 0:
+                # Self-referential mixing
+                mix_ratio = 0.3 * np.sin(iteration * np.pi / 3)
+                recursive_output = (1 - mix_ratio) * recursive_output + mix_ratio * x
+                
+            # Apply non-linear transformation inspired by strange attractors
+            for i in range(recursive_output.shape[1]):
+                # Henon map-inspired transformation
+                if i > 0:
+                    new_val = 1 - 1.4 * recursive_output[:, i]**2 + 0.3 * recursive_output[:, i-1]
+                    recursive_output[:, i] = new_val
+                    
+        return recursive_output
+    
+    def forward(self, x: np.ndarray) -> np.ndarray:
+        """Apply post-modern transformations that challenge traditional neural computation."""
+        if x.ndim == 1:
+            x = x.reshape(1, -1)
+            
+        # 1. Self-modification: The layer modifies itself based on input
+        self._self_modify(x)
+        
+        # 2. Deconstruct traditional boundaries
+        deconstructed = self._deconstruct_boundaries(x)
+        
+        # 3. Apply fractal/chaotic transformations
+        if deconstructed.shape[1] == self.fractal_coefficients.shape[0]:
+            fractal_output = deconstructed @ self.fractal_coefficients
+        else:
+            # Handle size mismatch
+            min_size = min(deconstructed.shape[1], self.fractal_coefficients.shape[0])
+            fractal_output = deconstructed[:, :min_size] @ self.fractal_coefficients[:min_size, :]
+        
+        # 4. Apply meta-transformations
+        meta_results = self._apply_meta_transformations(fractal_output)
+        
+        # 5. Combine meta-levels through plurality (no single "correct" interpretation)
+        combined_output = np.zeros((x.shape[0], self.output_size))
+        
+        for i, meta_result in enumerate(meta_results):
+            weight = np.exp(-i * 0.5)  # Exponential weighting of meta-levels
+            
+            # Resize meta_result to match output size if necessary
+            if meta_result.shape[1] >= self.output_size:
+                resized = meta_result[:, :self.output_size]
+            else:
+                # Repeat pattern to fill output size
+                repeats = (self.output_size + meta_result.shape[1] - 1) // meta_result.shape[1]
+                repeated = np.tile(meta_result, (1, repeats))
+                resized = repeated[:, :self.output_size]
+                
+            combined_output += weight * resized
+            
+        # 6. Add paradox: embrace contradiction by adding anti-correlated component
+        paradox_component = -0.1 * np.flip(combined_output, axis=1)
+        final_output = combined_output + paradox_component
+        
+        # Store in history for self-modification
+        self.transformation_history.append(final_output.copy())
+        
+        # Limit history to prevent memory explosion
+        if len(self.transformation_history) > 10:
+            self.transformation_history.pop(0)
+            
+        return final_output
+
+
 class AlgebraicNeuralNetwork:
     """
     Main class for Algebraic Neural Networks that combines different
@@ -218,6 +417,18 @@ def create_sample_network() -> AlgebraicNeuralNetwork:
     network.add_layer(PolynomialLayer(4, 6, degree=2))
     network.add_layer(GroupTheoryLayer(6, 4, group_order=8))
     network.add_layer(GeometricAlgebraLayer(4, 2))
+    
+    return network
+
+
+def create_postmodern_network() -> AlgebraicNeuralNetwork:
+    """Create a post-modern algebraic neural network for demonstration."""
+    network = AlgebraicNeuralNetwork()
+    
+    # Add post-modern layers that challenge traditional computation
+    network.add_layer(PostModernLayer(4, 6, chaos_factor=0.15, meta_levels=3))
+    network.add_layer(PostModernLayer(6, 4, chaos_factor=0.1, meta_levels=2))
+    network.add_layer(GeometricAlgebraLayer(4, 2))  # Traditional layer for contrast
     
     return network
 
@@ -259,6 +470,18 @@ def demo_algebraic_neural_network():
     geo_layer = GeometricAlgebraLayer(4, 3)
     geo_output = geo_layer.forward(sample_input[0])
     print("Geometric Algebra Layer Output:", geo_output)
+    
+    # Post-Modern Layer
+    postmodern_layer = PostModernLayer(4, 3, chaos_factor=0.1, meta_levels=2)
+    postmodern_output = postmodern_layer.forward(sample_input[0])
+    print("Post-Modern Layer Output:", postmodern_output)
+    
+    # Demonstrate post-modern network
+    print("\n=== Post-Modern Neural Network Demo ===\n")
+    postmodern_network = create_postmodern_network()
+    postmodern_predictions = postmodern_network.predict(sample_input)
+    print("Post-Modern Network Output Shape:", postmodern_predictions.shape)
+    print("Post-Modern Network Output:\n", postmodern_predictions)
 
 
 if __name__ == "__main__":

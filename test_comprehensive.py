@@ -16,7 +16,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 # Import all our implementations
 from algebraic_neural_network import (
     AlgebraicNeuralNetwork, PolynomialLayer, GroupTheoryLayer, 
-    GeometricAlgebraLayer, create_sample_network
+    GeometricAlgebraLayer, PostModernLayer, create_sample_network
 )
 
 def test_basic_functionality():
@@ -45,6 +45,12 @@ def test_basic_functionality():
     geo_output = geo_layer.forward(test_input)
     print(f"   Input: {test_input.shape} → Output: {geo_output.shape}")
     print(f"   Output range: [{np.min(geo_output):.3f}, {np.max(geo_output):.3f}]")
+    
+    print("\n4. Testing PostModernLayer:")
+    postmodern_layer = PostModernLayer(4, 3, chaos_factor=0.1, meta_levels=2)
+    postmodern_output = postmodern_layer.forward(test_input)
+    print(f"   Input: {test_input.shape} → Output: {postmodern_output.shape}")
+    print(f"   Output range: [{np.min(postmodern_output):.3f}, {np.max(postmodern_output):.3f}]")
     
     return True
 
@@ -195,6 +201,60 @@ def test_edge_cases():
     
     return True
 
+
+def test_postmodern_properties():
+    """Test specific properties of post-modern neural layers."""
+    print("=== Testing Post-Modern Layer Properties ===\n")
+    
+    # Create a post-modern layer
+    postmodern_layer = PostModernLayer(3, 3, chaos_factor=0.1, meta_levels=2)
+    
+    # Test self-modification
+    print("1. Testing Self-Modification:")
+    test_input = np.array([[1, 0, -1]])
+    
+    # First pass
+    output1 = postmodern_layer.forward(test_input)
+    
+    # Second pass (should be different due to self-modification)
+    output2 = postmodern_layer.forward(test_input)
+    
+    modification_magnitude = np.linalg.norm(output2 - output1)
+    print(f"   First output: {output1.flatten()}")
+    print(f"   Second output: {output2.flatten()}")
+    print(f"   Modification magnitude: {modification_magnitude:.6f}")
+    
+    # Test meta-level processing
+    print("\n2. Testing Meta-Level Processing:")
+    meta_results = postmodern_layer._apply_meta_transformations(test_input)
+    print(f"   Number of meta-levels: {len(meta_results)}")
+    for i, meta_result in enumerate(meta_results):
+        print(f"   Meta-level {i+1} shape: {meta_result.shape}")
+        
+    # Test paradox integration
+    print("\n3. Testing Paradox Integration:")
+    standard_output = np.array([[1, 2, 3]])
+    paradox_component = -0.1 * np.flip(standard_output, axis=1)
+    print(f"   Standard output: {standard_output.flatten()}")
+    print(f"   Paradox component: {paradox_component.flatten()}")
+    print(f"   Combined: {(standard_output + paradox_component).flatten()}")
+    
+    # Test chaotic dynamics
+    print("\n4. Testing Chaotic Dynamics:")
+    fractal_coeffs = postmodern_layer._generate_fractal_coefficients()
+    print(f"   Fractal coefficients shape: {fractal_coeffs.shape}")
+    print(f"   Coefficient range: [{np.min(fractal_coeffs):.3f}, {np.max(fractal_coeffs):.3f}]")
+    print(f"   Coefficient std: {np.std(fractal_coeffs):.6f}")
+    
+    # Test boundary deconstruction
+    print("\n5. Testing Boundary Deconstruction:")
+    deconstructed = postmodern_layer._deconstruct_boundaries(test_input)
+    print(f"   Original input: {test_input.flatten()}")
+    print(f"   Deconstructed: {deconstructed.flatten()}")
+    
+    return True
+
+
 def run_comprehensive_test():
     """Run all tests and report results."""
     print("Comprehensive Algebraic Neural Network Test Suite")
@@ -205,6 +265,7 @@ def run_comprehensive_test():
         ("Network Composition", test_network_composition), 
         ("Deterministic Behavior", test_deterministic_behavior),
         ("Mathematical Properties", test_mathematical_properties),
+        ("Post-Modern Properties", test_postmodern_properties),
         ("Edge Cases", test_edge_cases),
     ]
     

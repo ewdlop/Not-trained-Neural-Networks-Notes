@@ -5,6 +5,7 @@ A comprehensive collection of notes, implementations, and examples of neural net
 ## Contents
 
 - [Algebraic Neural Networks](#algebraic-neural-networks)
+- [Post-Modern Neural Networks](#post-modern-neural-networks)
 - [Theory and Mathematical Foundations](#theory-and-mathematical-foundations)
 - [Implementations](#implementations)
 - [Examples and Use Cases](#examples-and-use-cases)
@@ -24,6 +25,23 @@ Algebraic Neural Networks (ANNs) represent a paradigm shift from traditional neu
 2. **Deterministic Behavior**: Outputs are fully determined by algebraic rules
 3. **Mathematical Rigor**: Based on well-established algebraic foundations
 4. **Interpretability**: Clear mathematical interpretation of operations
+
+## Post-Modern Neural Networks
+
+Post-Modern Neural Networks represent a radical departure from traditional computational paradigms by embracing philosophical principles of post-modernism. These networks challenge fundamental assumptions about computation through:
+
+- **Self-Referential Processing**: Networks that modify their own computational rules during operation
+- **Paradox Integration**: Explicit incorporation of contradictory computations and multiple truths
+- **Meta-Computational Awareness**: Operations that operate on operations themselves
+- **Boundary Deconstruction**: Breaking down traditional input/output dichotomies
+- **Chaotic Dynamics**: Incorporating chaos theory and fractal mathematics
+
+### Key Philosophical Features
+
+1. **Rejection of Universal Optimization**: No single loss function governs behavior
+2. **Embrace of Uncertainty**: Fundamental unpredictability by design
+3. **Computational Reflexivity**: Networks aware of their own computational nature
+4. **Plurality of Interpretations**: Multiple simultaneous truths without resolution
 
 ## Getting Started
 
@@ -60,6 +78,9 @@ python examples/group_theory_network.py
 
 # Geometric algebra networks
 python examples/geometric_algebra_network.py
+
+# Post-modern networks (philosophical computing)
+python examples/postmodern_network.py
 ```
 
 ## Structure
@@ -71,11 +92,13 @@ python examples/geometric_algebra_network.py
 ├── test_comprehensive.py              # Test suite
 ├── theory/                            # Theoretical background
 │   ├── algebraic_foundations.md       # Mathematical foundations
+│   ├── postmodern_foundations.md      # Post-modern computing theory
 │   └── examples.md                    # Worked examples
 └── examples/                          # Practical examples
     ├── polynomial_network.py          # Polynomial-based network
     ├── group_theory_network.py        # Group theory implementation
-    └── geometric_algebra_network.py   # Geometric algebra network
+    ├── geometric_algebra_network.py   # Geometric algebra network
+    └── postmodern_network.py          # Post-modern philosophical network
 ```
 
 ## Testing
