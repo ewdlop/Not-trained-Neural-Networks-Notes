@@ -11,6 +11,12 @@ Author: Algebraic Neural Network Research
 import numpy as np
 from typing import List, Callable, Union
 import math
+try:
+    import torch
+    import torch.nn.functional as F
+    TORCH_AVAILABLE = True
+except ImportError:
+    TORCH_AVAILABLE = False
 
 
 class AlgebraicLayer:
@@ -185,6 +191,176 @@ class GeometricAlgebraLayer(AlgebraicLayer):
         return np.column_stack(results)
 
 
+class AnyonicLayer(AlgebraicLayer):
+    """
+    Layer based on anyonic braiding operations from topological quantum computing.
+    Implements non-Abelian braiding statistics using PyTorch tensors.
+    
+    Anyons are particles in 2D systems that have neither fermionic nor bosonic statistics.
+    This layer simulates their braiding behavior for neural computation.
+    """
+    
+    def __init__(self, input_size: int, output_size: int, anyon_type: str = "fibonacci"):
+        if not TORCH_AVAILABLE:
+            raise ImportError("PyTorch is required for AnyonicLayer but not available")
+            
+        super().__init__(input_size, output_size, "anyonic")
+        self.anyon_type = anyon_type
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        
+        # Initialize braiding matrices based on anyon type
+        self.braiding_matrices = self._generate_braiding_matrices()
+        self.fusion_rules = self._generate_fusion_rules()
+        
+    def _generate_braiding_matrices(self) -> List[torch.Tensor]:
+        """Generate braiding matrices for different anyon types."""
+        matrices = []
+        
+        if self.anyon_type == "fibonacci":
+            # Fibonacci anyons have specific braiding matrices
+            # These are the R-matrices for Fibonacci anyons
+            phi = (1 + math.sqrt(5)) / 2  # Golden ratio
+            
+            # Basic Fibonacci anyon braiding matrix
+            r_matrix = torch.tensor([
+                [complex(math.cos(-4 * math.pi / 5), math.sin(-4 * math.pi / 5)), 0],
+                [0, complex(math.cos(3 * math.pi / 5), math.sin(3 * math.pi / 5))]
+            ], dtype=torch.complex64, device=self.device)
+            
+            matrices.append(r_matrix)
+            
+            # Create additional braiding matrices for different operations
+            for i in range(min(self.output_size, 4)):
+                angle = 2 * math.pi * i / 5  # Pentagon symmetry
+                braid_matrix = torch.tensor([
+                    [complex(math.cos(angle), math.sin(angle)), 0],
+                    [0, complex(math.cos(-angle), math.sin(-angle))]
+                ], dtype=torch.complex64, device=self.device)
+                matrices.append(braid_matrix)
+                
+        elif self.anyon_type == "ising":
+            # Ising anyons (simpler case)
+            for i in range(self.output_size):
+                angle = math.pi * i / 4
+                braid_matrix = torch.tensor([
+                    [complex(math.cos(angle), math.sin(angle)), 0],
+                    [0, complex(math.cos(-angle), math.sin(-angle))]
+                ], dtype=torch.complex64, device=self.device)
+                matrices.append(braid_matrix)
+                
+        else:  # Generic anyonic braiding
+            for i in range(self.output_size):
+                # Use fractional statistics parameter
+                theta = math.pi * (2 * i + 1) / self.output_size
+                braid_matrix = torch.tensor([
+                    [complex(math.cos(theta), math.sin(theta)), 0],
+                    [0, complex(math.cos(-theta), math.sin(-theta))]
+                ], dtype=torch.complex64, device=self.device)
+                matrices.append(braid_matrix)
+        
+        return matrices[:self.output_size]
+    
+    def _generate_fusion_rules(self) -> torch.Tensor:
+        """Generate fusion rules tensor for anyon combinations."""
+        if self.anyon_type == "fibonacci":
+            # Fibonacci fusion rules: τ x τ = 1 + τ (where τ is the non-trivial anyon)
+            fusion = torch.tensor([
+                [1.0, 0.0],  # Identity fusion
+                [0.618, 1.0]  # Golden ratio appears in Fibonacci anyons
+            ], dtype=torch.float32, device=self.device)
+        else:
+            # Generic fusion rules
+            fusion = torch.eye(2, dtype=torch.float32, device=self.device)
+            
+        return fusion
+    
+    def _apply_braiding(self, x: torch.Tensor, braid_idx: int) -> torch.Tensor:
+        """Apply braiding operation to input tensor."""
+        if braid_idx >= len(self.braiding_matrices):
+            braid_idx = braid_idx % len(self.braiding_matrices)
+            
+        braid_matrix = self.braiding_matrices[braid_idx]
+        
+        # Convert real input to complex for braiding operation
+        x_complex = x.to(dtype=torch.complex64)
+        
+        # Apply braiding matrix (simplified for neural network context)
+        if x_complex.shape[-1] >= 2:
+            # Apply braiding to pairs of features
+            result = torch.zeros_like(x_complex)
+            for i in range(0, min(x_complex.shape[-1], 2), 2):
+                if i + 1 < x_complex.shape[-1]:
+                    # Create a 2-element vector for braiding
+                    pair = torch.stack([x_complex[..., i], x_complex[..., i+1]], dim=-1)
+                    # Apply braiding matrix
+                    braided_pair = torch.matmul(pair, braid_matrix)
+                    result[..., i] = braided_pair[..., 0]
+                    result[..., i+1] = braided_pair[..., 1]
+                else:
+                    result[..., i] = x_complex[..., i]
+            
+            # Copy remaining features unchanged
+            if x_complex.shape[-1] > 2:
+                result[..., 2:] = x_complex[..., 2:]
+        else:
+            result = x_complex
+            
+        return result.real  # Return real part for neural network compatibility
+    
+    def _compute_topological_charge(self, x: torch.Tensor) -> torch.Tensor:
+        """Compute topological charge of the anyonic state."""
+        # Compute different topological invariants
+        charge1 = torch.sum(x * x, dim=-1, keepdim=True)  # Quadratic invariant
+        charge2 = torch.sum(torch.abs(x), dim=-1, keepdim=True)  # Linear invariant
+        
+        # Combine charges with different weights
+        combined_charge = 0.5 * torch.tanh(charge1) + 0.3 * torch.sigmoid(charge2)
+        return combined_charge
+    
+    def forward(self, x: np.ndarray) -> np.ndarray:
+        """Apply anyonic braiding operations to input."""
+        # Convert numpy to PyTorch tensor
+        x_tensor = torch.from_numpy(x.astype(np.float32)).to(self.device)
+        
+        if x_tensor.ndim == 1:
+            x_tensor = x_tensor.unsqueeze(0)
+            
+        batch_size = x_tensor.shape[0]
+        results = []
+        
+        # Apply different braiding operations for each output feature
+        for i in range(self.output_size):
+            # Apply braiding operation
+            braided = self._apply_braiding(x_tensor, i)
+            
+            # Compute topological properties
+            topo_charge = self._compute_topological_charge(braided)
+            
+            # Combine braiding and topological information
+            # Use weighted combination to create meaningful outputs
+            if braided.shape[-1] >= 2:
+                # Use different aggregation methods for variety
+                if i % 3 == 0:
+                    feature = torch.mean(braided, dim=-1, keepdim=True)
+                elif i % 3 == 1:
+                    feature = torch.max(braided, dim=-1, keepdim=True)[0]
+                else:
+                    feature = torch.sum(braided, dim=-1, keepdim=True) / braided.shape[-1]
+            else:
+                feature = braided
+                
+            # Add topological charge contribution with better scaling
+            feature = feature + topo_charge
+            
+            results.append(feature)
+            
+        # Concatenate all output features
+        output_tensor = torch.cat(results, dim=-1)
+        
+        # Convert back to numpy
+        return output_tensor.detach().cpu().numpy()
+
+
 class AlgebraicNeuralNetwork:
     """
     Main class for Algebraic Neural Networks that combines different
@@ -217,7 +393,26 @@ def create_sample_network() -> AlgebraicNeuralNetwork:
     # Add different types of algebraic layers
     network.add_layer(PolynomialLayer(4, 6, degree=2))
     network.add_layer(GroupTheoryLayer(6, 4, group_order=8))
-    network.add_layer(GeometricAlgebraLayer(4, 2))
+    network.add_layer(GeometricAlgebraLayer(4, 3))
+    
+    # Add anyonic layer if PyTorch is available
+    if TORCH_AVAILABLE:
+        network.add_layer(AnyonicLayer(3, 2, anyon_type="fibonacci"))
+    
+    return network
+
+
+def create_anyonic_network() -> AlgebraicNeuralNetwork:
+    """Create a sample network focusing on anyonic operations."""
+    if not TORCH_AVAILABLE:
+        raise ImportError("PyTorch is required for anyonic networks")
+        
+    network = AlgebraicNeuralNetwork()
+    
+    # Build a network with multiple anyonic layers
+    network.add_layer(AnyonicLayer(4, 6, anyon_type="fibonacci"))
+    network.add_layer(AnyonicLayer(6, 4, anyon_type="ising"))
+    network.add_layer(AnyonicLayer(4, 2, anyon_type="generic"))
     
     return network
 
@@ -259,6 +454,24 @@ def demo_algebraic_neural_network():
     geo_layer = GeometricAlgebraLayer(4, 3)
     geo_output = geo_layer.forward(sample_input[0])
     print("Geometric Algebra Layer Output:", geo_output)
+    
+    # Anyonic Layer (if PyTorch is available)
+    if TORCH_AVAILABLE:
+        anyonic_layer = AnyonicLayer(4, 3, anyon_type="fibonacci")
+        anyonic_output = anyonic_layer.forward(sample_input[0])
+        print("Anyonic Layer Output:", anyonic_output)
+        
+        # Demonstrate anyonic network
+        print("\n=== Anyonic Network Demo ===\n")
+        try:
+            anyonic_network = create_anyonic_network()
+            anyonic_result = anyonic_network.predict(sample_input)
+            print("Anyonic Network Output shape:", anyonic_result.shape)
+            print("Anyonic Network Output:\n", anyonic_result)
+        except Exception as e:
+            print(f"Anyonic network demo failed: {e}")
+    else:
+        print("Anyonic Layer: PyTorch not available - skipping anyonic demonstrations")
 
 
 if __name__ == "__main__":

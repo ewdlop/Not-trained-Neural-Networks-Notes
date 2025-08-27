@@ -16,8 +16,12 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 # Import all our implementations
 from algebraic_neural_network import (
     AlgebraicNeuralNetwork, PolynomialLayer, GroupTheoryLayer, 
-    GeometricAlgebraLayer, create_sample_network
+    GeometricAlgebraLayer, create_sample_network, TORCH_AVAILABLE
 )
+
+# Try to import AnyonicLayer if PyTorch is available
+if TORCH_AVAILABLE:
+    from algebraic_neural_network import AnyonicLayer
 
 def test_basic_functionality():
     """Test basic functionality of all layer types."""
@@ -45,6 +49,16 @@ def test_basic_functionality():
     geo_output = geo_layer.forward(test_input)
     print(f"   Input: {test_input.shape} → Output: {geo_output.shape}")
     print(f"   Output range: [{np.min(geo_output):.3f}, {np.max(geo_output):.3f}]")
+    
+    # Test AnyonicLayer if PyTorch is available
+    if TORCH_AVAILABLE:
+        print("\n4. Testing AnyonicLayer:")
+        anyonic_layer = AnyonicLayer(4, 3, anyon_type="fibonacci")
+        anyonic_output = anyonic_layer.forward(test_input)
+        print(f"   Input: {test_input.shape} → Output: {anyonic_output.shape}")
+        print(f"   Output range: [{np.min(anyonic_output):.3f}, {np.max(anyonic_output):.3f}]")
+    else:
+        print("\n4. AnyonicLayer: Skipping (PyTorch not available)")
     
     return True
 
@@ -195,6 +209,61 @@ def test_edge_cases():
     
     return True
 
+
+def test_anyonic_neural_networks():
+    """Test anyonic neural network functionality if PyTorch is available."""
+    if not TORCH_AVAILABLE:
+        print("=== Testing Anyonic Neural Networks ===\n")
+        print("Anyonic Neural Networks: Skipping (PyTorch not available)")
+        return True
+        
+    print("=== Testing Anyonic Neural Networks ===\n")
+    
+    # Test different anyon types
+    anyon_types = ["fibonacci", "ising", "generic"]
+    test_input = np.random.randn(2, 4)
+    
+    print("Testing different anyon types:")
+    for anyon_type in anyon_types:
+        layer = AnyonicLayer(4, 3, anyon_type=anyon_type)
+        output = layer.forward(test_input)
+        print(f"  {anyon_type.capitalize()}: Input {test_input.shape} → Output {output.shape}")
+        
+        # Test deterministic behavior
+        output2 = layer.forward(test_input)
+        diff = np.abs(output - output2).max()
+        print(f"    Deterministic: {diff < 1e-10} (max diff: {diff:.2e})")
+    
+    # Test braiding properties
+    print("\nTesting braiding properties:")
+    layer = AnyonicLayer(4, 2, anyon_type="fibonacci")
+    
+    # Test with basis vectors
+    basis_vectors = [
+        np.array([[1, 0, 0, 0]]),
+        np.array([[0, 1, 0, 0]]),
+        np.array([[1, 1, 0, 0]]),
+    ]
+    
+    for i, vec in enumerate(basis_vectors):
+        output = layer.forward(vec)
+        print(f"  Basis {i+1}: {vec[0]} → {output[0]}")
+    
+    # Test network composition
+    print("\nTesting anyonic network composition:")
+    network = AlgebraicNeuralNetwork()
+    network.add_layer(AnyonicLayer(4, 6, anyon_type="fibonacci"))
+    network.add_layer(AnyonicLayer(6, 3, anyon_type="ising"))
+    network.add_layer(AnyonicLayer(3, 2, anyon_type="generic"))
+    
+    test_input = np.random.randn(3, 4)
+    output = network.predict(test_input)
+    print(f"  Network: Input {test_input.shape} → Output {output.shape}")
+    print(f"  Output range: [{output.min():.3f}, {output.max():.3f}]")
+    
+    return True
+
+
 def run_comprehensive_test():
     """Run all tests and report results."""
     print("Comprehensive Algebraic Neural Network Test Suite")
@@ -206,6 +275,7 @@ def run_comprehensive_test():
         ("Deterministic Behavior", test_deterministic_behavior),
         ("Mathematical Properties", test_mathematical_properties),
         ("Edge Cases", test_edge_cases),
+        ("Anyonic Neural Networks", test_anyonic_neural_networks),
     ]
     
     results = []

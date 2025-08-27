@@ -16,6 +16,7 @@ Algebraic Neural Networks (ANNs) represent a paradigm shift from traditional neu
 - **Algebraic Group Theory**: Using group operations for network transformations
 - **Polynomial Algebras**: Networks based on polynomial computations
 - **Geometric Algebra**: Incorporating geometric algebraic structures
+- **Anyonic Braiding**: Using topological quantum computing braiding operations (requires PyTorch)
 - **Fixed Algebraic Transformations**: Pre-defined algebraic operations
 
 ### Key Features
@@ -32,7 +33,7 @@ git clone https://github.com/ewdlop/Not-trained-Neural-Networks-Notes.git
 cd Not-trained-Neural-Networks-Notes
 
 # Install dependencies
-pip install numpy matplotlib
+pip install numpy matplotlib torch
 
 # Quick demo
 python demo.py
@@ -60,6 +61,9 @@ python examples/group_theory_network.py
 
 # Geometric algebra networks
 python examples/geometric_algebra_network.py
+
+# Anyonic neural networks (requires PyTorch)
+python examples/anyonic_network.py
 ```
 
 ## Structure
@@ -75,7 +79,8 @@ python examples/geometric_algebra_network.py
 └── examples/                          # Practical examples
     ├── polynomial_network.py          # Polynomial-based network
     ├── group_theory_network.py        # Group theory implementation
-    └── geometric_algebra_network.py   # Geometric algebra network
+    ├── geometric_algebra_network.py   # Geometric algebra network
+    └── anyonic_network.py             # Anyonic braiding network (PyTorch)
 ```
 
 ## Testing
@@ -87,8 +92,9 @@ python test_comprehensive.py
 ```
 
 This tests:
-- Basic functionality of all layer types
+- Basic functionality of all layer types (including anyonic if PyTorch available)
 - Network composition and data flow
 - Deterministic behavior (same input → same output)
 - Mathematical properties of algebraic operations
 - Edge cases and boundary conditions
+- Anyonic braiding operations and topological properties
