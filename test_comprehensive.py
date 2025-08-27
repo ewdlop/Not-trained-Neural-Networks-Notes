@@ -17,7 +17,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from algebraic_neural_network import (
     AlgebraicNeuralNetwork, PolynomialLayer, GroupTheoryLayer, 
     GeometricAlgebraLayer, HaltingOracleLayer, KolmogorovComplexityLayer,
-    BusyBeaverLayer, NonRecursiveLayer, create_sample_network, create_uncomputable_network
+    BusyBeaverLayer, NonRecursiveLayer, ProbabilisticLayer, ChaosTheoryLayer,
+    InformationTheoryLayer, SetTheoryLayer, create_sample_network, 
+    create_uncomputable_network, create_non_algebraic_network
 )
 
 def test_basic_functionality():
@@ -46,6 +48,31 @@ def test_basic_functionality():
     geo_output = geo_layer.forward(test_input)
     print(f"   Input: {test_input.shape} → Output: {geo_output.shape}")
     print(f"   Output range: [{np.min(geo_output):.3f}, {np.max(geo_output):.3f}]")
+    
+    # Test non-algebraic layers
+    print("\n4. Testing ProbabilisticLayer:")
+    prob_layer = ProbabilisticLayer(4, 3, distribution="gaussian")
+    prob_output = prob_layer.forward(test_input)
+    print(f"   Input: {test_input.shape} → Output: {prob_output.shape}")
+    print(f"   Output range: [{np.min(prob_output):.3f}, {np.max(prob_output):.3f}]")
+    
+    print("\n5. Testing ChaosTheoryLayer:")
+    chaos_layer = ChaosTheoryLayer(4, 3, map_type="logistic")
+    chaos_output = chaos_layer.forward(test_input)
+    print(f"   Input: {test_input.shape} → Output: {chaos_output.shape}")
+    print(f"   Output range: [{np.min(chaos_output):.3f}, {np.max(chaos_output):.3f}]")
+    
+    print("\n6. Testing InformationTheoryLayer:")
+    info_layer = InformationTheoryLayer(4, 3, info_type="entropy")
+    info_output = info_layer.forward(test_input)
+    print(f"   Input: {test_input.shape} → Output: {info_output.shape}")
+    print(f"   Output range: [{np.min(info_output):.3f}, {np.max(info_output):.3f}]")
+    
+    print("\n7. Testing SetTheoryLayer:")
+    set_layer = SetTheoryLayer(4, 3, operation="membership")
+    set_output = set_layer.forward(test_input)
+    print(f"   Input: {test_input.shape} → Output: {set_output.shape}")
+    print(f"   Output range: [{np.min(set_output):.3f}, {np.max(set_output):.3f}]")
     
     return True
 
@@ -237,6 +264,32 @@ def test_uncomputable_network_composition():
     
     return True
 
+def test_non_algebraic_network_composition():
+    """Test composition of non-algebraic neural network."""
+    print("\n=== Testing Non-Algebraic Network Composition ===\n")
+    
+    # Create non-algebraic network
+    network = create_non_algebraic_network()
+    
+    # Test with different input sizes
+    test_cases = [
+        (1, 4),    # Single sample
+        (5, 4),    # Multiple samples
+        (10, 4)    # Larger batch
+    ]
+    
+    for i, (batch_size, input_size) in enumerate(test_cases, 1):
+        test_input = np.random.randn(batch_size, input_size)
+        output = network.predict(test_input)
+        
+        print(f"Test case {i}:")
+        print(f"   Input shape: {test_input.shape}")
+        print(f"   Output shape: {output.shape}")
+        print(f"   Output mean: {np.mean(output):.4f}")
+        print(f"   Output std: {np.std(output):.4f}")
+    
+    return True
+
 def test_edge_cases():
     """Test edge cases and boundary conditions."""
     print("\n=== Testing Edge Cases ===\n")
@@ -285,6 +338,7 @@ def run_comprehensive_test():
         ("Mathematical Properties", test_mathematical_properties),
         ("Uncomputable Layers", test_uncomputable_layers),
         ("Uncomputable Network Composition", test_uncomputable_network_composition),
+        ("Non-Algebraic Network Composition", test_non_algebraic_network_composition),
         ("Edge Cases", test_edge_cases),
     ]
     
