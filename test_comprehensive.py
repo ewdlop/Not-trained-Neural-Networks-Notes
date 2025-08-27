@@ -18,6 +18,10 @@ from algebraic_neural_network import (
     AlgebraicNeuralNetwork, PolynomialLayer, GroupTheoryLayer, 
     GeometricAlgebraLayer, create_sample_network
 )
+from lazy_neural_network import (
+    LazyNeuralNetwork, LazyPolynomialLayer, LazyGroupTheoryLayer,
+    LazyGeometricAlgebraLayer, create_sample_lazy_network
+)
 
 def test_basic_functionality():
     """Test basic functionality of all layer types."""
@@ -159,6 +163,47 @@ def test_mathematical_properties():
     
     return True
 
+def test_lazy_networks_integration():
+    """Test integration between algebraic and lazy networks."""
+    print("\n=== Testing Lazy Networks Integration ===\n")
+    
+    # Create both types of networks
+    algebraic_network = create_sample_network()
+    lazy_network = create_sample_lazy_network()
+    
+    # Test data
+    test_input = np.random.randn(3, 4)
+    
+    # Compare outputs
+    algebraic_output = algebraic_network.predict(test_input)
+    lazy_output = lazy_network.predict(test_input)
+    
+    print(f"1. Network comparison:")
+    print(f"   Algebraic output shape: {algebraic_output.shape}")
+    print(f"   Lazy output shape: {lazy_output.shape}")
+    
+    # Test lazy functionality
+    lazy_prediction = lazy_network.predict_lazy(test_input)
+    print(f"\n2. Lazy evaluation test:")
+    print(f"   Lazy prediction created: {lazy_prediction}")
+    print(f"   Is computed initially: {lazy_prediction.is_computed}")
+    
+    computed_output = lazy_prediction.compute()
+    print(f"   Is computed after evaluation: {lazy_prediction.is_computed}")
+    
+    # Verify consistency
+    diff = np.linalg.norm(lazy_output - computed_output)
+    print(f"   Lazy immediate vs computed difference: {diff:.10f}")
+    
+    # Test partial computation
+    partial_outputs = lazy_network.partial_predict(test_input, [0])
+    print(f"\n3. Partial computation test:")
+    print(f"   Partial output shape: {partial_outputs[0].shape}")
+    
+    assert diff < 1e-10
+    return True
+
+
 def test_edge_cases():
     """Test edge cases and boundary conditions."""
     print("\n=== Testing Edge Cases ===\n")
@@ -205,6 +250,7 @@ def run_comprehensive_test():
         ("Network Composition", test_network_composition), 
         ("Deterministic Behavior", test_deterministic_behavior),
         ("Mathematical Properties", test_mathematical_properties),
+        ("Lazy Networks Integration", test_lazy_networks_integration),
         ("Edge Cases", test_edge_cases),
     ]
     

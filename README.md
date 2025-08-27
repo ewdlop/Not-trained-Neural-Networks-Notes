@@ -18,12 +18,24 @@ Algebraic Neural Networks (ANNs) represent a paradigm shift from traditional neu
 - **Geometric Algebra**: Incorporating geometric algebraic structures
 - **Fixed Algebraic Transformations**: Pre-defined algebraic operations
 
+## Lazy Neural Networks
+
+Lazy Neural Networks extend the algebraic framework with deferred computation capabilities, providing:
+
+- **Deferred Computation**: Calculate results only when needed
+- **Memory Efficiency**: Avoid storing unnecessary intermediate results
+- **Caching Benefits**: Reuse computed values for repeated inputs
+- **Partial Computation**: Compute only specific layers or outputs
+- **Conditional Processing**: Process data based on runtime conditions
+
 ### Key Features
 
 1. **No Training Required**: Networks are constructed using algebraic principles
 2. **Deterministic Behavior**: Outputs are fully determined by algebraic rules
 3. **Mathematical Rigor**: Based on well-established algebraic foundations
 4. **Interpretability**: Clear mathematical interpretation of operations
+5. **Lazy Evaluation**: Computation deferred until results are needed
+6. **Resource Efficiency**: Optimal memory and computational resource usage
 
 ## Getting Started
 
@@ -60,6 +72,21 @@ python examples/group_theory_network.py
 
 # Geometric algebra networks
 python examples/geometric_algebra_network.py
+
+# Lazy neural networks demonstration
+python examples/lazy_network_demo.py
+```
+
+### Lazy Neural Networks
+```bash
+# Run lazy neural network demo
+python lazy_neural_network.py
+
+# Run comprehensive lazy network tests
+python test_lazy_networks.py
+
+# Interactive lazy network demonstration
+python examples/lazy_network_demo.py
 ```
 
 ## Structure
@@ -67,15 +94,19 @@ python examples/geometric_algebra_network.py
 ```
 ├── README.md                          # This file
 ├── demo.py                            # Quick demonstration script
-├── algebraic_neural_network.py        # Main implementation
-├── test_comprehensive.py              # Test suite
+├── algebraic_neural_network.py        # Main algebraic implementation
+├── lazy_neural_network.py            # Lazy neural network implementation
+├── test_comprehensive.py              # Algebraic network test suite
+├── test_lazy_networks.py             # Lazy network test suite
 ├── theory/                            # Theoretical background
 │   ├── algebraic_foundations.md       # Mathematical foundations
-│   └── examples.md                    # Worked examples
+│   ├── examples.md                    # Worked examples
+│   └── lazy_networks.md              # Lazy network documentation
 └── examples/                          # Practical examples
     ├── polynomial_network.py          # Polynomial-based network
     ├── group_theory_network.py        # Group theory implementation
-    └── geometric_algebra_network.py   # Geometric algebra network
+    ├── geometric_algebra_network.py   # Geometric algebra network
+    └── lazy_network_demo.py          # Lazy network demonstration
 ```
 
 ## Testing
@@ -83,7 +114,11 @@ python examples/geometric_algebra_network.py
 Run the comprehensive test suite to verify all components:
 
 ```bash
+# Test algebraic neural networks
 python test_comprehensive.py
+
+# Test lazy neural networks
+python test_lazy_networks.py
 ```
 
 This tests:
@@ -91,4 +126,6 @@ This tests:
 - Network composition and data flow
 - Deterministic behavior (same input → same output)
 - Mathematical properties of algebraic operations
+- Lazy evaluation and caching mechanisms
+- Memory efficiency and performance optimization
 - Edge cases and boundary conditions
