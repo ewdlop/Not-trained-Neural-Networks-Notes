@@ -185,6 +185,225 @@ class GeometricAlgebraLayer(AlgebraicLayer):
         return np.column_stack(results)
 
 
+class HaltingOracleLayer(AlgebraicLayer):
+    """
+    Layer that simulates a halting oracle for specific computational patterns.
+    Uses heuristics and bounded computation to approximate uncomputable halting decisions.
+    """
+    
+    def __init__(self, input_size: int, output_size: int, max_iterations: int = 1000):
+        super().__init__(input_size, output_size, "halting_oracle")
+        self.max_iterations = max_iterations
+        # Fixed seed for deterministic "non-algorithmic" behavior
+        self.oracle_seed = 42
+        
+    def _simulate_halting_oracle(self, program_encoding: float) -> float:
+        """Simulate halting oracle decision for encoded program."""
+        # Use fixed-seed randomness to simulate oracle behavior
+        np.random.seed(int(abs(program_encoding * 1000)) % 2**31)
+        
+        # Simple heuristic: programs with certain patterns are more likely to halt
+        # This is a deterministic approximation of the uncomputable halting problem
+        complexity_factor = abs(program_encoding) % 1.0
+        
+        if complexity_factor < 0.1:  # Very simple programs likely halt
+            return 1.0
+        elif complexity_factor > 0.9:  # Very complex programs might not halt
+            return 0.1
+        else:
+            # Use bounded computation simulation
+            iterations = int(complexity_factor * self.max_iterations)
+            # Simulate bounded program execution
+            state = program_encoding
+            for i in range(iterations):
+                state = (state * 1.618 + 0.786) % 1.0  # Simple state evolution
+                if abs(state - 0.5) < 0.01:  # "Halting condition"
+                    return 1.0
+            return 0.3  # Uncertain/timeout case
+    
+    def forward(self, x: np.ndarray) -> np.ndarray:
+        """Apply halting oracle simulation to inputs."""
+        if x.ndim == 1:
+            x = x.reshape(1, -1)
+            
+        results = []
+        for i in range(self.output_size):
+            oracle_results = []
+            for sample in x:
+                # Encode input as "program" for halting oracle
+                program_encoding = np.sum(sample * (i + 1)) / len(sample)
+                halting_prob = self._simulate_halting_oracle(program_encoding)
+                oracle_results.append(halting_prob)
+            results.append(np.array(oracle_results))
+            
+        return np.column_stack(results)
+
+
+class KolmogorovComplexityLayer(AlgebraicLayer):
+    """
+    Layer that approximates Kolmogorov complexity using compression-based heuristics.
+    Provides bounded approximations of the uncomputable Kolmogorov complexity function.
+    """
+    
+    def __init__(self, input_size: int, output_size: int, precision: int = 8):
+        super().__init__(input_size, output_size, "kolmogorov_complexity")
+        self.precision = precision
+        
+    def _approximate_kolmogorov_complexity(self, data: np.ndarray) -> float:
+        """Approximate Kolmogorov complexity using compressibility heuristics."""
+        # Convert to discrete representation
+        discretized = np.round(data * (2**self.precision)).astype(int)
+        
+        # Simple compression simulation using pattern detection
+        data_str = ''.join(map(str, discretized))
+        
+        # Count repetitive patterns (simple compression heuristic)
+        unique_chars = len(set(data_str))
+        total_chars = len(data_str)
+        
+        # Estimate complexity based on entropy-like measure
+        if total_chars == 0:
+            return 0.0
+            
+        # Normalized complexity estimate
+        entropy_approx = (unique_chars / total_chars) * np.log2(unique_chars + 1)
+        
+        # Add pattern complexity (longer patterns suggest lower complexity)
+        pattern_factor = 1.0
+        for pattern_len in range(2, min(5, len(data_str))):
+            patterns = set()
+            for i in range(len(data_str) - pattern_len + 1):
+                patterns.add(data_str[i:i+pattern_len])
+            if len(patterns) < len(data_str) - pattern_len + 1:
+                pattern_factor *= 0.8  # Reduce complexity for repeated patterns
+                
+        return entropy_approx * pattern_factor
+    
+    def forward(self, x: np.ndarray) -> np.ndarray:
+        """Compute approximate Kolmogorov complexity for inputs."""
+        if x.ndim == 1:
+            x = x.reshape(1, -1)
+            
+        results = []
+        for i in range(self.output_size):
+            complexity_results = []
+            for sample in x:
+                # Different projections for different outputs
+                projection = sample * (i + 1) / (self.output_size)
+                complexity = self._approximate_kolmogorov_complexity(projection)
+                complexity_results.append(complexity)
+            results.append(np.array(complexity_results))
+            
+        return np.column_stack(results)
+
+
+class BusyBeaverLayer(AlgebraicLayer):
+    """
+    Layer using Busy Beaver function values and approximations.
+    The Busy Beaver function is uncomputable for general n, but known for small values.
+    """
+    
+    def __init__(self, input_size: int, output_size: int):
+        super().__init__(input_size, output_size, "busy_beaver")
+        # Known Busy Beaver values: BB(1)=1, BB(2)=4, BB(3)=6, BB(4)=13, BB(5)≥4098
+        self.known_bb_values = {1: 1, 2: 4, 3: 6, 4: 13, 5: 4098}
+        
+    def _busy_beaver_approximation(self, n: int) -> float:
+        """Get Busy Beaver value or approximation."""
+        if n <= 0:
+            return 0.0
+        elif n in self.known_bb_values:
+            return float(self.known_bb_values[n])
+        elif n <= 5:
+            return float(self.known_bb_values[5])
+        else:
+            # For n > 5, use exponential approximation
+            # This is a heuristic since BB(n) grows faster than any computable function
+            return self.known_bb_values[5] * (2.0 ** (n - 5))
+    
+    def forward(self, x: np.ndarray) -> np.ndarray:
+        """Apply Busy Beaver function to transformed inputs."""
+        if x.ndim == 1:
+            x = x.reshape(1, -1)
+            
+        results = []
+        for i in range(self.output_size):
+            bb_results = []
+            for sample in x:
+                # Transform input to discrete parameter for Busy Beaver function
+                # Use log scale to keep values reasonable
+                param = max(1, int(abs(np.sum(sample) * (i + 1)) % 10) + 1)
+                bb_value = self._busy_beaver_approximation(param)
+                # Normalize to prevent overflow
+                normalized_bb = np.log1p(bb_value)
+                bb_results.append(normalized_bb)
+            results.append(np.array(bb_results))
+            
+        return np.column_stack(results)
+
+
+class NonRecursiveLayer(AlgebraicLayer):
+    """
+    Layer based on non-recursive sets and functions.
+    Simulates operations on computably enumerable but non-computable sets.
+    """
+    
+    def __init__(self, input_size: int, output_size: int, enumeration_bound: int = 1000):
+        super().__init__(input_size, output_size, "non_recursive")
+        self.enumeration_bound = enumeration_bound
+        # Simulate a c.e. non-recursive set using a bounded enumeration
+        self.ce_set = self._generate_ce_set()
+        
+    def _generate_ce_set(self) -> set:
+        """Generate a computably enumerable set simulation."""
+        ce_set = set()
+        # Simulate enumeration of a c.e. set (like the set of Gödel numbers of theorems)
+        for i in range(self.enumeration_bound):
+            # Simple enumeration rule (this is computable, but simulates c.e. behavior)
+            if self._enumeration_rule(i):
+                ce_set.add(i)
+        return ce_set
+    
+    def _enumeration_rule(self, n: int) -> bool:
+        """Rule for enumerating elements (simulates theorem enumeration)."""
+        # Simple mathematical property that creates interesting patterns
+        # Simulates: numbers that can be expressed as sum of two squares
+        for i in range(int(np.sqrt(n)) + 1):
+            remainder = n - i*i
+            if remainder >= 0 and int(np.sqrt(remainder))**2 == remainder:
+                return True
+        return False
+    
+    def _membership_oracle(self, value: float) -> float:
+        """Simulate membership oracle for non-recursive set."""
+        # Convert continuous value to discrete for set membership
+        discrete_val = int(abs(value * 1000)) % self.enumeration_bound
+        
+        if discrete_val in self.ce_set:
+            return 1.0
+        else:
+            # For values not yet enumerated, return uncertainty
+            # This simulates the non-recursive nature
+            return 0.5
+    
+    def forward(self, x: np.ndarray) -> np.ndarray:
+        """Apply non-recursive set operations to inputs."""
+        if x.ndim == 1:
+            x = x.reshape(1, -1)
+            
+        results = []
+        for i in range(self.output_size):
+            membership_results = []
+            for sample in x:
+                # Transform input for membership testing
+                test_value = np.sum(sample * np.arange(len(sample))) * (i + 1)
+                membership = self._membership_oracle(test_value)
+                membership_results.append(membership)
+            results.append(np.array(membership_results))
+            
+        return np.column_stack(results)
+
+
 class AlgebraicNeuralNetwork:
     """
     Main class for Algebraic Neural Networks that combines different
@@ -218,6 +437,19 @@ def create_sample_network() -> AlgebraicNeuralNetwork:
     network.add_layer(PolynomialLayer(4, 6, degree=2))
     network.add_layer(GroupTheoryLayer(6, 4, group_order=8))
     network.add_layer(GeometricAlgebraLayer(4, 2))
+    
+    return network
+
+
+def create_uncomputable_network() -> AlgebraicNeuralNetwork:
+    """Create a sample network with uncomputable layers for demonstration."""
+    network = AlgebraicNeuralNetwork()
+    
+    # Add uncomputable layers
+    network.add_layer(HaltingOracleLayer(4, 5, max_iterations=500))
+    network.add_layer(KolmogorovComplexityLayer(5, 4, precision=6))
+    network.add_layer(BusyBeaverLayer(4, 3))
+    network.add_layer(NonRecursiveLayer(3, 2, enumeration_bound=500))
     
     return network
 
@@ -261,5 +493,50 @@ def demo_algebraic_neural_network():
     print("Geometric Algebra Layer Output:", geo_output)
 
 
+def demo_uncomputable_neural_network():
+    """Demonstrate the uncomputable neural network with sample data."""
+    print("\n=== Uncomputable Neural Network Demo ===\n")
+    
+    # Create uncomputable network
+    network = create_uncomputable_network()
+    
+    # Generate sample input data
+    np.random.seed(42)
+    sample_input = np.random.randn(3, 4)  # 3 samples, 4 features each
+    
+    print("Input data shape:", sample_input.shape)
+    print("Input data:\n", sample_input)
+    
+    # Run prediction
+    output = network.predict(sample_input)
+    
+    print("\nOutput data shape:", output.shape)
+    print("Output data:\n", output)
+    
+    # Demonstrate individual uncomputable layers
+    print("\n=== Individual Uncomputable Layer Demonstrations ===\n")
+    
+    # Halting Oracle Layer
+    halting_layer = HaltingOracleLayer(4, 3, max_iterations=100)
+    halting_output = halting_layer.forward(sample_input[0])
+    print("Halting Oracle Layer Output:", halting_output)
+    
+    # Kolmogorov Complexity Layer
+    kolmogorov_layer = KolmogorovComplexityLayer(4, 3, precision=6)
+    kolmogorov_output = kolmogorov_layer.forward(sample_input[0])
+    print("Kolmogorov Complexity Layer Output:", kolmogorov_output)
+    
+    # Busy Beaver Layer
+    bb_layer = BusyBeaverLayer(4, 3)
+    bb_output = bb_layer.forward(sample_input[0])
+    print("Busy Beaver Layer Output:", bb_output)
+    
+    # Non-Recursive Layer
+    nr_layer = NonRecursiveLayer(4, 3, enumeration_bound=100)
+    nr_output = nr_layer.forward(sample_input[0])
+    print("Non-Recursive Layer Output:", nr_output)
+
+
 if __name__ == "__main__":
     demo_algebraic_neural_network()
+    demo_uncomputable_neural_network()

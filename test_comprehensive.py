@@ -16,7 +16,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 # Import all our implementations
 from algebraic_neural_network import (
     AlgebraicNeuralNetwork, PolynomialLayer, GroupTheoryLayer, 
-    GeometricAlgebraLayer, create_sample_network
+    GeometricAlgebraLayer, HaltingOracleLayer, KolmogorovComplexityLayer,
+    BusyBeaverLayer, NonRecursiveLayer, create_sample_network, create_uncomputable_network
 )
 
 def test_basic_functionality():
@@ -159,6 +160,83 @@ def test_mathematical_properties():
     
     return True
 
+def test_uncomputable_layers():
+    """Test uncomputable neural network layers."""
+    print("\n=== Testing Uncomputable Layers ===\n")
+    
+    test_input = np.random.randn(3, 4)
+    
+    # Test Halting Oracle Layer
+    print("1. Testing HaltingOracleLayer:")
+    halting_layer = HaltingOracleLayer(4, 3, max_iterations=100)
+    halting_output = halting_layer.forward(test_input)
+    print(f"   Input: {test_input.shape} → Output: {halting_output.shape}")
+    print(f"   Output range: [{np.min(halting_output):.3f}, {np.max(halting_output):.3f}]")
+    # Outputs should be probabilities between 0 and 1
+    assert np.all(halting_output >= 0) and np.all(halting_output <= 1), "Halting oracle outputs must be in [0,1]"
+    
+    # Test Kolmogorov Complexity Layer
+    print("\n2. Testing KolmogorovComplexityLayer:")
+    kolmogorov_layer = KolmogorovComplexityLayer(4, 3, precision=6)
+    kolmogorov_output = kolmogorov_layer.forward(test_input)
+    print(f"   Input: {test_input.shape} → Output: {kolmogorov_output.shape}")
+    print(f"   Output range: [{np.min(kolmogorov_output):.3f}, {np.max(kolmogorov_output):.3f}]")
+    # Complexity should be non-negative
+    assert np.all(kolmogorov_output >= 0), "Kolmogorov complexity must be non-negative"
+    
+    # Test Busy Beaver Layer
+    print("\n3. Testing BusyBeaverLayer:")
+    bb_layer = BusyBeaverLayer(4, 3)
+    bb_output = bb_layer.forward(test_input)
+    print(f"   Input: {test_input.shape} → Output: {bb_output.shape}")
+    print(f"   Output range: [{np.min(bb_output):.3f}, {np.max(bb_output):.3f}]")
+    # BB values should be positive
+    assert np.all(bb_output > 0), "Busy Beaver values must be positive"
+    
+    # Test Non-Recursive Layer
+    print("\n4. Testing NonRecursiveLayer:")
+    nr_layer = NonRecursiveLayer(4, 3, enumeration_bound=100)
+    nr_output = nr_layer.forward(test_input)
+    print(f"   Input: {test_input.shape} → Output: {nr_output.shape}")
+    print(f"   Output range: [{np.min(nr_output):.3f}, {np.max(nr_output):.3f}]")
+    # Membership values should be in [0,1]
+    assert np.all(nr_output >= 0) and np.all(nr_output <= 1), "Membership values must be in [0,1]"
+    
+    # Test deterministic behavior of uncomputable layers
+    print("\n5. Testing deterministic behavior:")
+    halting_output2 = halting_layer.forward(test_input)
+    diff = np.linalg.norm(halting_output - halting_output2)
+    print(f"   Determinism check: difference = {diff:.10f}")
+    assert diff < 1e-10, "Uncomputable layers must be deterministic"
+    
+    return True
+
+def test_uncomputable_network_composition():
+    """Test composition of uncomputable neural network."""
+    print("\n=== Testing Uncomputable Network Composition ===\n")
+    
+    # Create uncomputable network
+    network = create_uncomputable_network()
+    
+    # Test with different input sizes
+    test_cases = [
+        (1, 4),    # Single sample
+        (5, 4),    # Multiple samples
+        (10, 4)    # Larger batch
+    ]
+    
+    for i, (batch_size, input_size) in enumerate(test_cases, 1):
+        test_input = np.random.randn(batch_size, input_size)
+        output = network.predict(test_input)
+        
+        print(f"Test case {i}:")
+        print(f"   Input shape: {test_input.shape}")
+        print(f"   Output shape: {output.shape}")
+        print(f"   Output mean: {np.mean(output):.4f}")
+        print(f"   Output std: {np.std(output):.4f}")
+    
+    return True
+
 def test_edge_cases():
     """Test edge cases and boundary conditions."""
     print("\n=== Testing Edge Cases ===\n")
@@ -205,6 +283,8 @@ def run_comprehensive_test():
         ("Network Composition", test_network_composition), 
         ("Deterministic Behavior", test_deterministic_behavior),
         ("Mathematical Properties", test_mathematical_properties),
+        ("Uncomputable Layers", test_uncomputable_layers),
+        ("Uncomputable Network Composition", test_uncomputable_network_composition),
         ("Edge Cases", test_edge_cases),
     ]
     

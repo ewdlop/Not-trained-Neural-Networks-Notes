@@ -6,7 +6,7 @@ Run this script to see the basic functionality of algebraic neural networks.
 """
 
 import numpy as np
-from algebraic_neural_network import create_sample_network
+from algebraic_neural_network import create_sample_network, create_uncomputable_network
 
 def main():
     print("🧮 Algebraic Neural Network Quick Demo")
@@ -47,6 +47,26 @@ def main():
     
     print("\n" + "="*50)
     print("✅ Demo completed! Algebraic neural networks work without training.")
+    
+    # Bonus: Quick uncomputable network demo
+    print("\n🔬 Bonus: Uncomputable Neural Network Quick Demo")
+    print("="*50)
+    
+    print("1. Creating uncomputable neural network...")
+    uncomputable_network = create_uncomputable_network()
+    print("   ✓ Network created with halting oracle, Kolmogorov complexity, Busy Beaver, and non-recursive layers")
+    
+    print("\n2. Processing same data through uncomputable transformations...")
+    uncomputable_predictions = uncomputable_network.predict(sample_data)
+    print(f"   ✓ Output shape: {uncomputable_predictions.shape}")
+    print(f"   ✓ Output range: [{np.min(uncomputable_predictions):.3f}, {np.max(uncomputable_predictions):.3f}]")
+    
+    print("\n   Uncomputable neural network output:")
+    for i, output in enumerate(uncomputable_predictions):
+        print(f"     Output {i+1}: [{output[0]:6.3f}, {output[1]:6.3f}]")
+    
+    print("\n" + "="*50)
+    print("🎯 Both networks operate without training but explore different mathematical domains!")
     print("📚 See theory/ and examples/ directories for more details.")
 
 if __name__ == "__main__":
