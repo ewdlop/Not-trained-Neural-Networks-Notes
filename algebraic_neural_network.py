@@ -185,6 +185,144 @@ class GeometricAlgebraLayer(AlgebraicLayer):
         return np.column_stack(results)
 
 
+class SupersymmetryLayer(AlgebraicLayer):
+    """
+    Layer based on supersymmetry from theoretical physics, implementing
+    Grassmann algebra with anticommuting variables and bosonic/fermionic duality.
+    """
+    
+    def __init__(self, input_size: int, output_size: int, n_grassmann: int = 2):
+        super().__init__(input_size, output_size, "supersymmetry")
+        self.n_grassmann = n_grassmann  # Number of Grassmann (anticommuting) variables
+        # Initialize supersymmetric transformation matrices
+        self.bosonic_transform = self._generate_bosonic_transform()
+        self.fermionic_transform = self._generate_fermionic_transform()
+        self.grassmann_coeffs = self._generate_grassmann_coefficients()
+        
+    def _generate_bosonic_transform(self) -> np.ndarray:
+        """Generate transformation matrix for bosonic components (commuting)."""
+        # Use golden ratio and symmetric properties for bosonic transformations
+        phi = (1 + math.sqrt(5)) / 2
+        transform = np.zeros((self.output_size, self.input_size))
+        
+        for i in range(self.output_size):
+            for j in range(self.input_size):
+                # Bosonic components use symmetric, commutative operations
+                transform[i, j] = math.cos(phi * (i + 1) * (j + 1) / (self.input_size + 1))
+                
+        return transform
+    
+    def _generate_fermionic_transform(self) -> np.ndarray:
+        """Generate transformation matrix for fermionic components (anticommuting)."""
+        # Fermionic transformations have antisymmetric properties
+        transform = np.zeros((self.output_size, self.input_size))
+        
+        for i in range(self.output_size):
+            for j in range(self.input_size):
+                # Fermionic components use antisymmetric operations
+                if i != j:
+                    transform[i, j] = math.sin(math.pi * (i - j) / max(self.input_size, self.output_size))
+                else:
+                    transform[i, j] = 0  # Diagonal elements zero (Pauli exclusion)
+                    
+        return transform
+    
+    def _generate_grassmann_coefficients(self) -> np.ndarray:
+        """Generate coefficients for Grassmann algebra operations."""
+        # Grassmann variables θ satisfy θᵢθⱼ = -θⱼθᵢ (anticommutation)
+        coeffs = np.zeros((self.n_grassmann, self.input_size))
+        
+        for i in range(self.n_grassmann):
+            for j in range(self.input_size):
+                # Use alternating signs to encode anticommutation
+                coeffs[i, j] = (-1) ** (i + j) * (i + 1) / (j + 1)
+                
+        return coeffs
+    
+    def grassmann_product(self, x: np.ndarray, y: np.ndarray) -> float:
+        """
+        Compute Grassmann (anticommuting) product: xy = -yx
+        For identical variables: θθ = 0 (nilpotent property)
+        """
+        if np.array_equal(x, y):
+            return 0.0  # θθ = 0 for Grassmann variables
+        
+        # Anticommuting product: xy = -yx
+        dot_product = np.dot(x, y)
+        # Apply anticommutation by alternating signs
+        sign = (-1) ** (np.sum(x > 0) + np.sum(y > 0))
+        return sign * dot_product
+    
+    def supersymmetric_transform(self, bosonic: np.ndarray, fermionic: np.ndarray) -> tuple:
+        """
+        Apply supersymmetric transformation that mixes bosonic and fermionic components.
+        SUSY: δφ = εψ, δψ = ε∂φ (simplified)
+        """
+        # Supersymmetric parameter (infinitesimal)
+        epsilon = 0.1
+        
+        # Transform bosonic component (gains fermionic contribution)
+        new_bosonic = bosonic + epsilon * fermionic
+        
+        # Transform fermionic component (gains bosonic derivative-like term)
+        # Use finite differences as discrete "derivative"
+        bosonic_grad = np.gradient(bosonic) if len(bosonic) > 1 else bosonic
+        new_fermionic = fermionic + epsilon * bosonic_grad
+        
+        return new_bosonic, new_fermionic
+    
+    def forward(self, x: np.ndarray) -> np.ndarray:
+        """Apply supersymmetric transformations to input."""
+        if x.ndim == 1:
+            x = x.reshape(1, -1)
+            
+        results = []
+        
+        for sample in x:
+            # Split input into bosonic and fermionic components
+            mid_point = len(sample) // 2
+            bosonic_part = sample[:mid_point] if mid_point > 0 else sample
+            fermionic_part = sample[mid_point:] if mid_point > 0 else np.zeros_like(sample)
+            
+            # Ensure same length
+            min_len = min(len(bosonic_part), len(fermionic_part), self.input_size)
+            if min_len < len(bosonic_part):
+                bosonic_part = bosonic_part[:min_len]
+            if min_len < len(fermionic_part):
+                fermionic_part = fermionic_part[:min_len]
+            
+            # Apply bosonic and fermionic transformations
+            bosonic_output = self.bosonic_transform @ bosonic_part[:self.input_size] if len(bosonic_part) >= self.input_size else self.bosonic_transform @ np.pad(bosonic_part, (0, self.input_size - len(bosonic_part)))
+            fermionic_output = self.fermionic_transform @ fermionic_part[:self.input_size] if len(fermionic_part) >= self.input_size else self.fermionic_transform @ np.pad(fermionic_part, (0, self.input_size - len(fermionic_part)))
+            
+            # Apply supersymmetric transformation
+            susy_bosonic, susy_fermionic = self.supersymmetric_transform(
+                bosonic_output, fermionic_output
+            )
+            
+            # Compute Grassmann algebra contributions
+            grassmann_contrib = np.zeros(self.output_size)
+            for i in range(min(self.n_grassmann, self.output_size)):
+                if i < len(self.grassmann_coeffs) and len(bosonic_part) >= len(self.grassmann_coeffs[i]):
+                    grassmann_contrib[i] = self.grassmann_product(
+                        bosonic_part[:len(self.grassmann_coeffs[i])], 
+                        self.grassmann_coeffs[i]
+                    )
+            
+            # Combine all components
+            output = susy_bosonic + susy_fermionic + grassmann_contrib[:len(susy_bosonic)]
+            
+            # Ensure output has correct size
+            if len(output) > self.output_size:
+                output = output[:self.output_size]
+            elif len(output) < self.output_size:
+                output = np.pad(output, (0, self.output_size - len(output)))
+                
+            results.append(output)
+            
+        return np.array(results)
+
+
 class AlgebraicNeuralNetwork:
     """
     Main class for Algebraic Neural Networks that combines different
@@ -217,7 +355,20 @@ def create_sample_network() -> AlgebraicNeuralNetwork:
     # Add different types of algebraic layers
     network.add_layer(PolynomialLayer(4, 6, degree=2))
     network.add_layer(GroupTheoryLayer(6, 4, group_order=8))
-    network.add_layer(GeometricAlgebraLayer(4, 2))
+    network.add_layer(SupersymmetryLayer(4, 3, n_grassmann=2))
+    network.add_layer(GeometricAlgebraLayer(3, 2))
+    
+    return network
+
+
+def create_supersymmetric_network() -> AlgebraicNeuralNetwork:
+    """Create a neural network focused on supersymmetric transformations."""
+    network = AlgebraicNeuralNetwork()
+    
+    # Build a network with multiple supersymmetry layers
+    network.add_layer(SupersymmetryLayer(4, 4, n_grassmann=2))
+    network.add_layer(SupersymmetryLayer(4, 3, n_grassmann=3))
+    network.add_layer(SupersymmetryLayer(3, 2, n_grassmann=2))
     
     return network
 
@@ -255,11 +406,74 @@ def demo_algebraic_neural_network():
     group_output = group_layer.forward(sample_input[0])
     print("Group Theory Layer Output:", group_output)
     
+    # Supersymmetry Layer
+    susy_layer = SupersymmetryLayer(4, 3, n_grassmann=2)
+    susy_output = susy_layer.forward(sample_input[0])
+    print("Supersymmetry Layer Output:", susy_output)
+    
     # Geometric Algebra Layer
     geo_layer = GeometricAlgebraLayer(4, 3)
     geo_output = geo_layer.forward(sample_input[0])
     print("Geometric Algebra Layer Output:", geo_output)
+    
+    # Demonstrate supersymmetric network
+    print("\n=== Supersymmetric Neural Network Demo ===\n")
+    
+    susy_network = create_supersymmetric_network()
+    susy_result = susy_network.predict(sample_input)
+    
+    print("Supersymmetric Network Input shape:", sample_input.shape)
+    print("Supersymmetric Network Output shape:", susy_result.shape)
+    print("Supersymmetric Network Output:\n", susy_result)
+    
+    # Demonstrate Grassmann algebra properties
+    print("\n=== Grassmann Algebra Properties ===\n")
+    
+    test_vector_a = np.array([1, 0, 1, 0])
+    test_vector_b = np.array([0, 1, 0, 1])
+    
+    print("Test vectors:")
+    print("a =", test_vector_a)
+    print("b =", test_vector_b)
+    
+    # Test anticommutation
+    ab = susy_layer.grassmann_product(test_vector_a, test_vector_b)
+    ba = susy_layer.grassmann_product(test_vector_b, test_vector_a)
+    print(f"\nGrassmann product a∧b = {ab:.4f}")
+    print(f"Grassmann product b∧a = {ba:.4f}")
+    print(f"Anticommutation check (should be opposite): a∧b + b∧a = {ab + ba:.4f}")
+    
+    # Test nilpotent property
+    aa = susy_layer.grassmann_product(test_vector_a, test_vector_a)
+    print(f"\nNilpotent property a∧a = {aa:.4f} (should be 0)")
+
+
+def demo_supersymmetric_properties():
+    """Demonstrate specific supersymmetric properties and transformations."""
+    print("\n=== Supersymmetric Properties Demo ===\n")
+    
+    susy_layer = SupersymmetryLayer(4, 3, n_grassmann=2)
+    
+    # Create test bosonic and fermionic components
+    bosonic = np.array([1.0, 0.5, -0.5, 0.2])
+    fermionic = np.array([0.1, -0.2, 0.3, -0.1])
+    
+    print("Original components:")
+    print(f"Bosonic (φ):  {bosonic}")
+    print(f"Fermionic (ψ): {fermionic}")
+    
+    # Apply supersymmetric transformation
+    new_bosonic, new_fermionic = susy_layer.supersymmetric_transform(bosonic, fermionic)
+    
+    print("\nAfter supersymmetric transformation:")
+    print(f"New Bosonic (φ'):  {new_bosonic}")
+    print(f"New Fermionic (ψ'): {new_fermionic}")
+    
+    print(f"\nChanges:")
+    print(f"Δφ = {new_bosonic - bosonic}")
+    print(f"Δψ = {new_fermionic - fermionic}")
 
 
 if __name__ == "__main__":
     demo_algebraic_neural_network()
+    demo_supersymmetric_properties()

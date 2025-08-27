@@ -59,6 +59,25 @@ In neural networks, we use group actions to:
 - Preserve important symmetries
 - Generate multiple representations
 
+### 5. Supersymmetric Algebra (Grassmann Algebra)
+
+Supersymmetric algebra introduces anticommuting variables θᵢ (Grassmann variables) that satisfy:
+
+**Anticommutation Relation**: θᵢθⱼ = -θⱼθᵢ
+**Nilpotent Property**: θᵢ² = 0
+
+#### Superfields
+Combine ordinary and Grassmann coordinates:
+Φ(x, θ) = φ(x) + θψ(x) + θ²F(x)
+
+Where φ(x) represents bosonic components and ψ(x) represents fermionic components.
+
+#### Applications in Neural Networks:
+- Bosonic/fermionic duality in layer architecture
+- Anticommutative operations for specialized transformations
+- Physics-inspired algebraic structures
+- Natural regularization through nilpotent properties
+
 ## Algebraic Neural Network Architecture
 
 ### Layer Types
@@ -92,6 +111,18 @@ y = x ∘ eᵢ
 ```
 
 Where eᵢ are basis elements of the geometric algebra.
+
+#### 4. Supersymmetry Layers
+Implement Grassmann algebra with anticommuting variables:
+
+```
+y = T_bosonic(x_bosonic) + T_fermionic(x_fermionic) + Grassmann_terms
+```
+
+Where:
+- T_bosonic: Commutative transformation for bosonic components
+- T_fermionic: Anticommutative transformation for fermionic components
+- Grassmann_terms: Contributions from anticommuting algebra
 
 ### Composition of Layers
 
