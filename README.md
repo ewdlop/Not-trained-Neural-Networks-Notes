@@ -47,6 +47,8 @@ python demo.py
 
 **That's it!** No training, no waiting, no complex setup.
 
+> 📋 **TL;DR?** Check out [QUICK_REFERENCE.md](QUICK_REFERENCE.md) for a condensed guide!
+
 ## Contents
 
 - [Algebraic Neural Networks](#algebraic-neural-networks)
@@ -137,7 +139,8 @@ python examples/uncomputable_networks.py
 ## Structure
 
 ```
-├── README.md                          # This file
+├── README.md                          # This file (comprehensive guide)
+├── QUICK_REFERENCE.md                 # Quick start cheat sheet
 ├── demo.py                            # Quick demonstration script
 ├── beginner_tutorial.py               # Interactive tutorial for beginners
 ├── algebraic_neural_network.py        # Main implementation
@@ -232,5 +235,26 @@ Check out the `theory/` directory:
 - `algebraic_foundations.md` - Mathematical foundations
 - `uncomputable_networks.md` - Computer science theory
 - `examples.md` - Worked examples
+
+### 🔧 Troubleshooting
+
+**"ModuleNotFoundError: No module named 'numpy'"**
+```bash
+pip install numpy matplotlib
+```
+
+**"The tutorial seems complex"**
+- Start with just `python demo.py` 
+- Then try the beginner tutorial one section at a time
+
+**"I don't understand the math"**
+- That's okay! The networks work without understanding the deep mathematics
+- Focus on the practical usage examples
+- The FAQ explains concepts in simple terms
+
+**"Are these 'real' neural networks?"**
+- Yes! They're just a different approach to computation
+- Instead of learning from data, they use mathematical rules
+- Both approaches are valid for different use cases
 
 ---
