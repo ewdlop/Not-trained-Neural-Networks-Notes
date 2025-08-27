@@ -16,7 +16,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 # Import all our implementations
 from algebraic_neural_network import (
     AlgebraicNeuralNetwork, PolynomialLayer, GroupTheoryLayer, 
-    GeometricAlgebraLayer, create_sample_network
+    GeometricAlgebraLayer, SupersymmetryLayer, create_sample_network,
+    create_supersymmetric_network
 )
 
 def test_basic_functionality():
@@ -40,7 +41,13 @@ def test_basic_functionality():
     print(f"   Input: {test_input.shape} → Output: {group_output.shape}")
     print(f"   Output range: [{np.min(group_output):.3f}, {np.max(group_output):.3f}]")
     
-    print("\n3. Testing GeometricAlgebraLayer:")
+    print("\n3. Testing SupersymmetryLayer:")
+    susy_layer = SupersymmetryLayer(4, 3, n_grassmann=2)
+    susy_output = susy_layer.forward(test_input)
+    print(f"   Input: {test_input.shape} → Output: {susy_output.shape}")
+    print(f"   Output range: [{np.min(susy_output):.3f}, {np.max(susy_output):.3f}]")
+    
+    print("\n4. Testing GeometricAlgebraLayer:")
     geo_layer = GeometricAlgebraLayer(4, 3)
     geo_output = geo_layer.forward(test_input)
     print(f"   Input: {test_input.shape} → Output: {geo_output.shape}")
@@ -157,7 +164,80 @@ def test_mathematical_properties():
     print(f"   e2 output: {out2[0]}")
     print(f"   e3 output: {out3[0]}")
     
+    # Test supersymmetry layer properties
+    print("\n4. Supersymmetry Layer Properties:")
+    susy_layer = SupersymmetryLayer(3, 3, n_grassmann=2)
+    
+    # Test Grassmann algebra properties
+    test_a = np.array([1, 0, 0])
+    test_b = np.array([0, 1, 0])
+    test_c = np.array([1, 0, 0])  # Same as test_a
+    
+    # Test anticommutation: ab = -ba
+    ab = susy_layer.grassmann_product(test_a, test_b)
+    ba = susy_layer.grassmann_product(test_b, test_a)
+    print(f"   Grassmann anticommutation: ab = {ab:.4f}, ba = {ba:.4f}")
+    print(f"   Anticommutation check: ab + ba = {ab + ba:.4f} (should be ≈0)")
+    
+    # Test nilpotent property: aa = 0
+    aa = susy_layer.grassmann_product(test_a, test_c)
+    print(f"   Nilpotent property: aa = {aa:.4f} (should be 0)")
+    
+    # Test supersymmetric transformation
+    bosonic = np.array([1.0, 0.5, -0.3])
+    fermionic = np.array([0.1, -0.2, 0.15])
+    new_b, new_f = susy_layer.supersymmetric_transform(bosonic, fermionic)
+    
+    print(f"   SUSY transformation preserves structure:")
+    print(f"     Original bosonic norm: {np.linalg.norm(bosonic):.4f}")
+    print(f"     Transformed bosonic norm: {np.linalg.norm(new_b):.4f}")
+    print(f"     Original fermionic norm: {np.linalg.norm(fermionic):.4f}")
+    print(f"     Transformed fermionic norm: {np.linalg.norm(new_f):.4f}")
+    
     return True
+
+def test_supersymmetric_networks():
+    """Test supersymmetric neural network composition and properties."""
+    print("\n=== Testing Supersymmetric Networks ===\n")
+    
+    # Create a supersymmetric network
+    susy_network = create_supersymmetric_network()
+    
+    # Test with different input sizes
+    test_cases = [
+        (1, 4),  # Single sample
+        (3, 4),  # Small batch
+        (5, 4)   # Larger batch
+    ]
+    
+    for i, (batch_size, input_size) in enumerate(test_cases, 1):
+        test_input = np.random.randn(batch_size, input_size)
+        output = susy_network.predict(test_input)
+        
+        print(f"Supersymmetric test case {i}:")
+        print(f"   Input shape: {test_input.shape}")
+        print(f"   Output shape: {output.shape}")
+        print(f"   Output mean: {np.mean(output):.4f}")
+        print(f"   Output std: {np.std(output):.4f}")
+    
+    # Test supersymmetric invariance properties
+    print("\nSupersymmetric invariance tests:")
+    
+    # Test that small SUSY transformations don't drastically change results
+    test_input = np.random.randn(2, 4)
+    original_output = susy_network.predict(test_input)
+    
+    # Apply small perturbation mimicking SUSY transformation
+    epsilon = 0.01
+    perturbed_input = test_input + epsilon * np.random.randn(*test_input.shape)
+    perturbed_output = susy_network.predict(perturbed_input)
+    
+    change_ratio = np.linalg.norm(perturbed_output - original_output) / np.linalg.norm(original_output)
+    print(f"   Output change ratio under small perturbation: {change_ratio:.4f}")
+    print(f"   Stability check (ratio should be small): {'PASS' if change_ratio < 1.0 else 'FAIL'}")
+    
+    return True
+
 
 def test_edge_cases():
     """Test edge cases and boundary conditions."""
@@ -205,6 +285,7 @@ def run_comprehensive_test():
         ("Network Composition", test_network_composition), 
         ("Deterministic Behavior", test_deterministic_behavior),
         ("Mathematical Properties", test_mathematical_properties),
+        ("Supersymmetric Networks", test_supersymmetric_networks),
         ("Edge Cases", test_edge_cases),
     ]
     

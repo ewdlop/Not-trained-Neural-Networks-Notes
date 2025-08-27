@@ -16,6 +16,7 @@ Algebraic Neural Networks (ANNs) represent a paradigm shift from traditional neu
 - **Algebraic Group Theory**: Using group operations for network transformations
 - **Polynomial Algebras**: Networks based on polynomial computations
 - **Geometric Algebra**: Incorporating geometric algebraic structures
+- **Supersymmetric Algebra**: Physics-inspired anticommuting Grassmann variables
 - **Fixed Algebraic Transformations**: Pre-defined algebraic operations
 
 ### Key Features
@@ -58,6 +59,9 @@ python examples/polynomial_network.py
 # Group theory networks
 python examples/group_theory_network.py
 
+# Supersymmetric networks (physics-inspired)
+python examples/supersymmetry_network.py
+
 # Geometric algebra networks
 python examples/geometric_algebra_network.py
 ```
@@ -71,10 +75,12 @@ python examples/geometric_algebra_network.py
 ├── test_comprehensive.py              # Test suite
 ├── theory/                            # Theoretical background
 │   ├── algebraic_foundations.md       # Mathematical foundations
+│   ├── supersymmetry_foundations.md   # Supersymmetry theory
 │   └── examples.md                    # Worked examples
 └── examples/                          # Practical examples
     ├── polynomial_network.py          # Polynomial-based network
     ├── group_theory_network.py        # Group theory implementation
+    ├── supersymmetry_network.py       # Supersymmetric algebra network
     └── geometric_algebra_network.py   # Geometric algebra network
 ```
 
