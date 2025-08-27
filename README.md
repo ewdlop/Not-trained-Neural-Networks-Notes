@@ -6,6 +6,7 @@ A comprehensive collection of notes, implementations, and examples of neural net
 
 - [Algebraic Neural Networks](#algebraic-neural-networks)
 - [Uncomputable Neural Networks](#uncomputable-neural-networks)
+- [God-damned Neural Networks](#god-damned-neural-networks)
 - [Theory and Mathematical Foundations](#theory-and-mathematical-foundations)
 - [Implementations](#implementations)
 - [Examples and Use Cases](#examples-and-use-cases)
@@ -41,6 +42,24 @@ Uncomputable Neural Networks extend the paradigm of non-trained networks by inco
 2. **Bounded Approximations**: Practical implementations of theoretically uncomputable functions
 3. **Deterministic Simulation**: Consistent behavior through fixed-seed randomness and heuristics
 4. **Educational Value**: Demonstrates limits and possibilities of computation
+
+## God-damned Neural Networks
+
+God-damned Neural Networks represent the frustrating and pathological behaviors commonly encountered in machine learning, implemented through algebraic operations. These networks demonstrate:
+
+- **Vanishing Gradient Layers**: Simulate signal decay in deep networks
+- **Exploding Gradient Layers**: Demonstrate unbounded gradient growth
+- **Overfitting Layers**: Perfect memorization with poor generalization
+- **Mode Collapse Layers**: Networks that output the same result regardless of input
+- **Catastrophic Forgetting Layers**: Networks that forget previous patterns when learning new ones
+- **Non-Convergent Layers**: Networks whose behavior oscillates and never stabilizes
+
+### Key Features
+
+1. **Educational Frustration**: Learn about ML pitfalls without the actual training pain
+2. **Pathological Behaviors**: Demonstrate common failure modes in neural networks
+3. **Satirical Commentary**: A humorous take on the challenges of machine learning
+4. **Deterministic Chaos**: Predictably unpredictable behaviors for consistent demonstration
 
 ## Getting Started
 
@@ -80,6 +99,9 @@ python examples/geometric_algebra_network.py
 
 # Uncomputable neural networks
 python examples/uncomputable_networks.py
+
+# God-damned neural networks (pathological/frustrating examples)
+python examples/god_damned_networks.py
 ```
 
 ## Structure
@@ -97,7 +119,8 @@ python examples/uncomputable_networks.py
     ├── polynomial_network.py          # Polynomial-based network
     ├── group_theory_network.py        # Group theory implementation
     ├── geometric_algebra_network.py   # Geometric algebra network
-    └── uncomputable_networks.py       # Uncomputable neural networks
+    ├── uncomputable_networks.py       # Uncomputable neural networks
+    └── god_damned_networks.py         # Frustrating/pathological examples
 ```
 
 ## Testing
