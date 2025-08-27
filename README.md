@@ -111,6 +111,7 @@ python examples/uncomputable_networks.py
 ├── test_comprehensive.py              # Test suite
 ├── theory/                            # Theoretical background
 │   ├── algebraic_foundations.md       # Mathematical foundations
+│   ├── non_algebraic_foundations.md   # Non-algebraic neural networks theory
 │   ├── uncomputable_networks.md       # Uncomputable neural networks theory
 │   └── examples.md                    # Worked examples
 └── examples/                          # Practical examples
