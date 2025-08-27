@@ -404,6 +404,313 @@ class NonRecursiveLayer(AlgebraicLayer):
         return np.column_stack(results)
 
 
+# ==================== NON-ALGEBRAIC NEURAL NETWORK LAYERS ====================
+
+class ProbabilisticLayer(AlgebraicLayer):
+    """
+    Layer using fixed probability distributions and statistical transformations.
+    Uses predefined statistical models without training.
+    """
+    
+    def __init__(self, input_size: int, output_size: int, distribution: str = "gaussian"):
+        super().__init__(input_size, output_size, "probabilistic")
+        self.distribution = distribution
+        # Fixed random seed for deterministic behavior
+        self.rng = np.random.RandomState(42)
+        # Generate fixed parameters for probability distributions
+        self.dist_params = self._generate_distribution_parameters()
+        
+    def _generate_distribution_parameters(self) -> dict:
+        """Generate fixed parameters for probability distributions."""
+        params = {}
+        for i in range(self.output_size):
+            if self.distribution == "gaussian":
+                # Fixed means and standard deviations
+                params[i] = {
+                    'mean': (i + 1) * 0.5,
+                    'std': 1.0 + i * 0.2
+                }
+            elif self.distribution == "exponential":
+                # Fixed rate parameters
+                params[i] = {'rate': 1.0 + i * 0.5}
+            else:  # uniform
+                params[i] = {'low': -i-1, 'high': i+1}
+        return params
+    
+    def forward(self, x: np.ndarray) -> np.ndarray:
+        """Apply probabilistic transformations to inputs."""
+        if x.ndim == 1:
+            x = x.reshape(1, -1)
+            
+        results = []
+        for i in range(self.output_size):
+            prob_results = []
+            for sample in x:
+                # Use input to transform distribution parameters
+                input_transform = np.sum(sample)
+                
+                if self.distribution == "gaussian":
+                    mean = self.dist_params[i]['mean'] + input_transform * 0.1
+                    std = self.dist_params[i]['std']
+                    # Use probability density function value
+                    prob_value = np.exp(-0.5 * ((input_transform - mean) / std)**2) / (std * np.sqrt(2 * np.pi))
+                elif self.distribution == "exponential":
+                    rate = self.dist_params[i]['rate']
+                    # Exponential PDF at transformed input
+                    prob_value = rate * np.exp(-rate * abs(input_transform))
+                else:  # uniform
+                    low, high = self.dist_params[i]['low'], self.dist_params[i]['high']
+                    # Uniform probability density
+                    prob_value = 1.0 / (high - low) if low <= input_transform <= high else 0.0
+                
+                prob_results.append(prob_value)
+            results.append(np.array(prob_results))
+            
+        return np.column_stack(results)
+
+
+class ChaosTheoryLayer(AlgebraicLayer):
+    """
+    Layer based on chaotic maps and strange attractors.
+    Uses deterministic chaos for non-linear transformations.
+    """
+    
+    def __init__(self, input_size: int, output_size: int, map_type: str = "logistic"):
+        super().__init__(input_size, output_size, "chaos_theory")
+        self.map_type = map_type
+        # Fixed parameters for chaotic maps
+        self.chaos_params = self._generate_chaos_parameters()
+        
+    def _generate_chaos_parameters(self) -> dict:
+        """Generate fixed parameters for chaotic maps."""
+        params = {}
+        for i in range(self.output_size):
+            if self.map_type == "logistic":
+                # Logistic map: x_{n+1} = r * x_n * (1 - x_n)
+                # Use chaotic regime: 3.57 < r < 4.0 to avoid divergence
+                params[i] = {'r': 3.8 + (i % 3) * 0.05}  # Keep r < 4.0
+            elif self.map_type == "henon":
+                # Henon map: x_{n+1} = 1 - a*x_n^2 + y_n, y_{n+1} = b*x_n
+                params[i] = {'a': 1.4, 'b': 0.3}
+            else:  # tent map
+                params[i] = {'mu': 1.8 + (i % 3) * 0.1}  # Keep mu < 2.0
+        return params
+    
+    def _logistic_map(self, x: float, r: float, iterations: int = 10) -> float:
+        """Apply logistic map iterations."""
+        # Normalize input to [0,1]
+        x = abs(x) % 1.0
+        for _ in range(iterations):
+            x = r * x * (1 - x)
+            # Prevent overflow/underflow
+            if x < 0 or x > 1 or not np.isfinite(x):
+                x = abs(x) % 1.0
+        return x
+    
+    def _tent_map(self, x: float, mu: float, iterations: int = 10) -> float:
+        """Apply tent map iterations."""
+        x = abs(x) % 1.0
+        for _ in range(iterations):
+            if x < 0.5:
+                x = mu * x
+            else:
+                x = mu * (1 - x)
+            # Prevent overflow/underflow
+            if x < 0 or x > 1 or not np.isfinite(x):
+                x = abs(x) % 1.0
+        return x
+    
+    def forward(self, x: np.ndarray) -> np.ndarray:
+        """Apply chaotic transformations to inputs."""
+        if x.ndim == 1:
+            x = x.reshape(1, -1)
+            
+        results = []
+        for i in range(self.output_size):
+            chaos_results = []
+            for sample in x:
+                # Use input as initial condition for chaotic map
+                initial_value = np.sum(sample) * (i + 1)
+                
+                if self.map_type == "logistic":
+                    r = self.chaos_params[i]['r']
+                    chaos_value = self._logistic_map(initial_value, r)
+                else:  # tent map
+                    mu = self.chaos_params[i]['mu']
+                    chaos_value = self._tent_map(initial_value, mu)
+                
+                chaos_results.append(chaos_value)
+            results.append(np.array(chaos_results))
+            
+        return np.column_stack(results)
+
+
+class InformationTheoryLayer(AlgebraicLayer):
+    """
+    Layer based on information theory principles.
+    Uses entropy, mutual information, and compression concepts.
+    """
+    
+    def __init__(self, input_size: int, output_size: int, info_type: str = "entropy"):
+        super().__init__(input_size, output_size, "information_theory")
+        self.info_type = info_type
+        # Fixed parameters for information-theoretic operations
+        self.info_params = self._generate_info_parameters()
+        
+    def _generate_info_parameters(self) -> dict:
+        """Generate fixed parameters for information operations."""
+        params = {}
+        for i in range(self.output_size):
+            params[i] = {
+                'quantization_levels': 8 + i * 2,
+                'base': 2.0 + i * 0.5
+            }
+        return params
+    
+    def _calculate_entropy(self, data: np.ndarray, levels: int, base: float) -> float:
+        """Calculate entropy of quantized data."""
+        # Quantize data
+        min_val, max_val = np.min(data), np.max(data)
+        if max_val == min_val:
+            return 0.0
+            
+        quantized = np.floor((data - min_val) / (max_val - min_val) * (levels - 1))
+        
+        # Calculate probabilities
+        unique, counts = np.unique(quantized, return_counts=True)
+        probabilities = counts / len(data)
+        
+        # Calculate entropy
+        entropy = 0.0
+        for p in probabilities:
+            if p > 0:
+                entropy -= p * np.log(p) / np.log(base)
+        
+        return entropy
+    
+    def _compression_ratio(self, data: np.ndarray) -> float:
+        """Estimate compression ratio using run-length encoding."""
+        # Simple compression metric based on repetition
+        if len(data) == 0:
+            return 1.0
+            
+        # Count unique values
+        unique_count = len(np.unique(data))
+        return unique_count / len(data)
+    
+    def forward(self, x: np.ndarray) -> np.ndarray:
+        """Apply information-theoretic transformations to inputs."""
+        if x.ndim == 1:
+            x = x.reshape(1, -1)
+            
+        results = []
+        for i in range(self.output_size):
+            info_results = []
+            for sample in x:
+                if self.info_type == "entropy":
+                    levels = self.info_params[i]['quantization_levels']
+                    base = self.info_params[i]['base']
+                    info_value = self._calculate_entropy(sample, levels, base)
+                elif self.info_type == "compression":
+                    info_value = self._compression_ratio(sample)
+                else:  # mutual_information approximation
+                    # Simple mutual information approximation
+                    x1, x2 = sample[:len(sample)//2], sample[len(sample)//2:]
+                    if len(x1) > 0 and len(x2) > 0:
+                        corr = np.corrcoef(x1, x2)[0, 1] if len(x1) == len(x2) else 0.0
+                        info_value = abs(corr)
+                    else:
+                        info_value = 0.0
+                
+                info_results.append(info_value)
+            results.append(np.array(info_results))
+            
+        return np.column_stack(results)
+
+
+class SetTheoryLayer(AlgebraicLayer):
+    """
+    Layer based on set theory operations and Boolean logic.
+    Uses set membership, unions, intersections, and complements.
+    """
+    
+    def __init__(self, input_size: int, output_size: int, operation: str = "membership"):
+        super().__init__(input_size, output_size, "set_theory")
+        self.operation = operation
+        # Generate fixed sets for operations
+        self.sets = self._generate_sets()
+        
+    def _generate_sets(self) -> dict:
+        """Generate fixed sets for set operations."""
+        sets = {}
+        for i in range(self.output_size):
+            # Create sets with different characteristics
+            if i % 3 == 0:
+                # Interval set: [-2, 2] scaled by (i+1) - more inclusive
+                sets[i] = {'type': 'interval', 'bounds': [-2*(i+1), 2*(i+1)]}
+            elif i % 3 == 1:
+                # Discrete set: fibonacci-like sequence
+                fib_like = [1, 1]
+                for j in range(8):
+                    fib_like.append(fib_like[-1] + fib_like[-2])
+                # Add more values to make it more inclusive
+                extended_set = set(fib_like)
+                extended_set.update(range(0, 10))  # Add 0-9
+                sets[i] = {'type': 'discrete', 'elements': extended_set}
+            else:
+                # Modular set: values where x mod (i+2) == 0 or 1 (more inclusive)
+                sets[i] = {'type': 'modular', 'modulus': i + 2, 'remainder_options': [0, 1]}
+        return sets
+    
+    def _set_membership(self, value: float, set_info: dict) -> float:
+        """Check membership in set."""
+        if set_info['type'] == 'interval':
+            low, high = set_info['bounds']
+            return 1.0 if low <= value <= high else 0.0
+        elif set_info['type'] == 'discrete':
+            # Check if rounded value is in discrete set
+            rounded_val = round(value)
+            return 1.0 if rounded_val in set_info['elements'] else 0.0
+        else:  # modular
+            # Check if value satisfies modular condition (more flexible)
+            rounded_val = round(abs(value))
+            remainder_options = set_info.get('remainder_options', [0])
+            return 1.0 if rounded_val % set_info['modulus'] in remainder_options else 0.0
+    
+    def _set_operations(self, value: float, set_idx: int) -> float:
+        """Perform set operations between multiple sets."""
+        # For demonstration, perform union of current set with next set
+        membership1 = self._set_membership(value, self.sets[set_idx])
+        next_idx = (set_idx + 1) % len(self.sets)
+        membership2 = self._set_membership(value, self.sets[next_idx])
+        
+        if self.operation == "union":
+            return max(membership1, membership2)
+        elif self.operation == "intersection":
+            return min(membership1, membership2)
+        elif self.operation == "complement":
+            return 1.0 - membership1
+        else:  # membership (default)
+            return membership1
+    
+    def forward(self, x: np.ndarray) -> np.ndarray:
+        """Apply set-theoretic transformations to inputs."""
+        if x.ndim == 1:
+            x = x.reshape(1, -1)
+            
+        results = []
+        for i in range(self.output_size):
+            set_results = []
+            for sample in x:
+                # Transform input for set operations
+                test_value = np.sum(sample) * (i + 1)
+                set_value = self._set_operations(test_value, i)
+                set_results.append(set_value)
+            results.append(np.array(set_results))
+            
+        return np.column_stack(results)
+
+
 class AlgebraicNeuralNetwork:
     """
     Main class for Algebraic Neural Networks that combines different
@@ -450,6 +757,19 @@ def create_uncomputable_network() -> AlgebraicNeuralNetwork:
     network.add_layer(KolmogorovComplexityLayer(5, 4, precision=6))
     network.add_layer(BusyBeaverLayer(4, 3))
     network.add_layer(NonRecursiveLayer(3, 2, enumeration_bound=500))
+    
+    return network
+
+
+def create_non_algebraic_network() -> AlgebraicNeuralNetwork:
+    """Create a sample network with non-algebraic layers for demonstration."""
+    network = AlgebraicNeuralNetwork()
+    
+    # Add non-algebraic layers
+    network.add_layer(ProbabilisticLayer(4, 5, distribution="gaussian"))
+    network.add_layer(ChaosTheoryLayer(5, 4, map_type="logistic"))
+    network.add_layer(InformationTheoryLayer(4, 3, info_type="entropy"))
+    network.add_layer(SetTheoryLayer(3, 2, operation="membership"))
     
     return network
 
@@ -537,6 +857,51 @@ def demo_uncomputable_neural_network():
     print("Non-Recursive Layer Output:", nr_output)
 
 
+def demo_non_algebraic_neural_network():
+    """Demonstrate the non-algebraic neural network with sample data."""
+    print("\n=== Non-Algebraic Neural Network Demo ===\n")
+    
+    # Create sample network
+    network = create_non_algebraic_network()
+    
+    # Generate sample input data
+    np.random.seed(42)
+    sample_input = np.random.randn(5, 4)  # 5 samples, 4 features each
+    
+    print("Input data shape:", sample_input.shape)
+    print("Input data:\n", sample_input)
+    
+    # Run prediction
+    output = network.predict(sample_input)
+    
+    print("\nOutput data shape:", output.shape)
+    print("Output data:\n", output)
+    
+    # Demonstrate individual non-algebraic layers
+    print("\n=== Individual Non-Algebraic Layer Demonstrations ===\n")
+    
+    # Probabilistic Layer
+    prob_layer = ProbabilisticLayer(4, 3, distribution="gaussian")
+    prob_output = prob_layer.forward(sample_input[0])
+    print("Probabilistic Layer Output:", prob_output)
+    
+    # Chaos Theory Layer
+    chaos_layer = ChaosTheoryLayer(4, 3, map_type="logistic")
+    chaos_output = chaos_layer.forward(sample_input[0])
+    print("Chaos Theory Layer Output:", chaos_output)
+    
+    # Information Theory Layer
+    info_layer = InformationTheoryLayer(4, 3, info_type="entropy")
+    info_output = info_layer.forward(sample_input[0])
+    print("Information Theory Layer Output:", info_output)
+    
+    # Set Theory Layer
+    set_layer = SetTheoryLayer(4, 3, operation="membership")
+    set_output = set_layer.forward(sample_input[0])
+    print("Set Theory Layer Output:", set_output)
+
+
 if __name__ == "__main__":
     demo_algebraic_neural_network()
+    demo_non_algebraic_neural_network()
     demo_uncomputable_neural_network()

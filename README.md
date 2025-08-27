@@ -5,6 +5,7 @@ A comprehensive collection of notes, implementations, and examples of neural net
 ## Contents
 
 - [Algebraic Neural Networks](#algebraic-neural-networks)
+- [Non-Algebraic Neural Networks](#non-algebraic-neural-networks)
 - [Uncomputable Neural Networks](#uncomputable-neural-networks)
 - [Theory and Mathematical Foundations](#theory-and-mathematical-foundations)
 - [Implementations](#implementations)
@@ -25,6 +26,22 @@ Algebraic Neural Networks (ANNs) represent a paradigm shift from traditional neu
 2. **Deterministic Behavior**: Outputs are fully determined by algebraic rules
 3. **Mathematical Rigor**: Based on well-established algebraic foundations
 4. **Interpretability**: Clear mathematical interpretation of operations
+
+## Non-Algebraic Neural Networks
+
+Non-Algebraic Neural Networks (NANNs) represent an alternative approach to non-trained networks that operate without traditional algebraic structures. Instead, they leverage other mathematical frameworks and natural phenomena:
+
+- **Probabilistic Methods**: Using fixed probability distributions and statistical transformations
+- **Chaos Theory**: Networks based on chaotic maps and strange attractors
+- **Information Theory**: Utilizing entropy, mutual information, and compression principles
+- **Set Theory**: Operations based on set membership and Boolean logic
+
+### Key Features
+
+1. **Non-Algebraic Foundations**: Based on probability, chaos, information, and set theory
+2. **Emergent Behavior**: Complex outputs from simple non-algebraic rules
+3. **Natural Phenomena Modeling**: Inspired by physical and biological systems
+4. **Complementary Approach**: Alternative to algebraic methods for different problem domains
 
 ## Uncomputable Neural Networks
 
@@ -78,6 +95,9 @@ python examples/group_theory_network.py
 # Geometric algebra networks
 python examples/geometric_algebra_network.py
 
+# Non-algebraic neural networks
+python examples/non_algebraic_network.py
+
 # Uncomputable neural networks
 python examples/uncomputable_networks.py
 ```
@@ -97,6 +117,7 @@ python examples/uncomputable_networks.py
     ├── polynomial_network.py          # Polynomial-based network
     ├── group_theory_network.py        # Group theory implementation
     ├── geometric_algebra_network.py   # Geometric algebra network
+    ├── non_algebraic_network.py       # Non-algebraic neural networks
     └── uncomputable_networks.py       # Uncomputable neural networks
 ```
 
@@ -109,9 +130,10 @@ python test_comprehensive.py
 ```
 
 This tests:
-- Basic functionality of all layer types (algebraic and uncomputable)
+- Basic functionality of all layer types (algebraic, non-algebraic, and uncomputable)
 - Network composition and data flow
 - Deterministic behavior (same input → same output)
 - Mathematical properties of algebraic operations
+- Non-algebraic transformations and emergent behaviors
 - Uncomputable layer approximations and bounds
 - Edge cases and boundary conditions
