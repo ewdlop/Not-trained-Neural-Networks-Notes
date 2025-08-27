@@ -273,6 +273,93 @@ def test_edge_cases():
     
     return True
 
+
+def test_god_damned_networks():
+    """Test the god-damned neural networks for expected pathological behaviors."""
+    print("\n=== Testing God-damned Neural Networks ===\n")
+    
+    # Import god-damned networks
+    import sys
+    import os
+    sys.path.append(os.path.join(os.path.dirname(__file__), 'examples'))
+    from god_damned_networks import (
+        VanishingGradientLayer, ExplodingGradientLayer, OverfittingLayer,
+        ModeCollapseLayer, CatastrophicForgettingLayer, NonConvergentLayer,
+        create_god_damned_network, create_mildly_annoying_network
+    )
+    
+    # Test input
+    test_input = np.random.RandomState(42).randn(2, 4)
+    
+    print("1. Testing individual pathological layers:")
+    
+    # Test VanishingGradientLayer
+    vanishing = VanishingGradientLayer(4, 3, vanishing_factor=0.1)
+    vanishing_output = vanishing.forward(test_input)
+    input_magnitude = np.linalg.norm(test_input)
+    output_magnitude = np.linalg.norm(vanishing_output)
+    signal_loss = (input_magnitude - output_magnitude) / input_magnitude
+    print(f"   Vanishing Gradient Layer: Signal loss = {signal_loss:.2%}")
+    assert signal_loss > 0.1, "Vanishing gradient should reduce signal significantly"
+    
+    # Test ExplodingGradientLayer
+    exploding = ExplodingGradientLayer(4, 3, explosion_factor=2.0)
+    exploding_output = exploding.forward(test_input * 0.1)  # Small input
+    growth = np.linalg.norm(exploding_output) / np.linalg.norm(test_input * 0.1)
+    print(f"   Exploding Gradient Layer: Growth factor = {growth:.2f}x")
+    assert growth > 1.0, "Exploding gradient should amplify signal"
+    
+    # Test OverfittingLayer
+    overfitting = OverfittingLayer(4, 3)
+    output1 = overfitting.forward(test_input)
+    output2 = overfitting.forward(test_input)  # Same input
+    output3 = overfitting.forward(test_input + 0.01)  # Different input
+    same_input_diff = np.linalg.norm(output1 - output2)
+    diff_input_diff = np.linalg.norm(output1 - output3)
+    print(f"   Overfitting Layer: Same input diff = {same_input_diff:.6f}, Different input diff = {diff_input_diff:.6f}")
+    assert same_input_diff < 1e-10, "Overfitting should give identical output for same input"
+    assert diff_input_diff > 0.1, "Overfitting should give different output for different inputs"
+    
+    # Test ModeCollapseLayer
+    mode_collapse = ModeCollapseLayer(4, 3, collapsed_value=0.5)
+    diverse_inputs = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [-1, -1, -1, -1]])
+    collapsed_outputs = mode_collapse.forward(diverse_inputs)
+    output_std = np.std(collapsed_outputs)
+    print(f"   Mode Collapse Layer: Output diversity (std) = {output_std:.6f}")
+    assert output_std < 1e-10, "Mode collapse should produce identical outputs"
+    
+    # Test NonConvergentLayer
+    non_convergent = NonConvergentLayer(4, 3)
+    nc_output1 = non_convergent.forward(test_input)
+    nc_output2 = non_convergent.forward(test_input)  # Same input, different iteration
+    non_convergence = np.linalg.norm(nc_output1 - nc_output2)
+    print(f"   Non-convergent Layer: Output difference = {non_convergence:.6f}")
+    assert non_convergence > 1e-6, "Non-convergent layer should produce different outputs"
+    
+    print("\n2. Testing complete god-damned network:")
+    
+    # Test complete network
+    god_damned_net = create_god_damned_network()
+    gd_output1 = god_damned_net.forward(test_input)
+    gd_output2 = god_damned_net.forward(test_input)
+    network_non_determinism = np.linalg.norm(gd_output1 - gd_output2)
+    print(f"   Network non-determinism: {network_non_determinism:.6f}")
+    print(f"   Output shape: {gd_output1.shape}")
+    print(f"   Output range: [{np.min(gd_output1):.3f}, {np.max(gd_output1):.3f}]")
+    
+    print("\n3. Testing mildly annoying network:")
+    
+    # Test mildly annoying network
+    annoying_net = create_mildly_annoying_network()
+    annoying_output = annoying_net.forward(test_input)
+    print(f"   Output shape: {annoying_output.shape}")
+    print(f"   Output range: [{np.min(annoying_output):.3f}, {np.max(annoying_output):.3f}]")
+    
+    print("\n✓ God-damned Networks: All pathological behaviors functioning as expected!")
+    
+    return True
+
+
 def run_comprehensive_test():
     """Run all tests and report results."""
     print("Comprehensive Algebraic Neural Network Test Suite")
@@ -286,6 +373,7 @@ def run_comprehensive_test():
         ("Uncomputable Layers", test_uncomputable_layers),
         ("Uncomputable Network Composition", test_uncomputable_network_composition),
         ("Edge Cases", test_edge_cases),
+        ("God-damned Neural Networks", test_god_damned_networks),
     ]
     
     results = []
