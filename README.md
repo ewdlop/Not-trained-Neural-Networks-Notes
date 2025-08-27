@@ -30,14 +30,45 @@ Algebraic Neural Networks (ANNs) represent a paradigm shift from traditional neu
 ```bash
 git clone https://github.com/ewdlop/Not-trained-Neural-Networks-Notes.git
 cd Not-trained-Neural-Networks-Notes
+
+# Install dependencies
+pip install numpy matplotlib
+
+# Quick demo
+python demo.py
+
+# Run main implementation
 python algebraic_neural_network.py
+
+# Run comprehensive tests
+python test_comprehensive.py
+```
+
+### Quick Demo
+```bash
+python demo.py
+```
+This runs a simple demonstration showing how algebraic neural networks process data without any training.
+
+### Examples
+```bash
+# Polynomial-based networks
+python examples/polynomial_network.py
+
+# Group theory networks
+python examples/group_theory_network.py
+
+# Geometric algebra networks
+python examples/geometric_algebra_network.py
 ```
 
 ## Structure
 
 ```
 ├── README.md                          # This file
+├── demo.py                            # Quick demonstration script
 ├── algebraic_neural_network.py        # Main implementation
+├── test_comprehensive.py              # Test suite
 ├── theory/                            # Theoretical background
 │   ├── algebraic_foundations.md       # Mathematical foundations
 │   └── examples.md                    # Worked examples
@@ -46,3 +77,18 @@ python algebraic_neural_network.py
     ├── group_theory_network.py        # Group theory implementation
     └── geometric_algebra_network.py   # Geometric algebra network
 ```
+
+## Testing
+
+Run the comprehensive test suite to verify all components:
+
+```bash
+python test_comprehensive.py
+```
+
+This tests:
+- Basic functionality of all layer types
+- Network composition and data flow
+- Deterministic behavior (same input → same output)
+- Mathematical properties of algebraic operations
+- Edge cases and boundary conditions
